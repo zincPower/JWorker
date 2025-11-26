@@ -1,0 +1,12 @@
+{
+  "name": "sample",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "jworker": "file:../jworker"
+  }
+}
+

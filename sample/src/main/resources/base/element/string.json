@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "SampleAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "SampleAbility_label",
+      "value": "JWorker"
+    }
+  ]
+}
