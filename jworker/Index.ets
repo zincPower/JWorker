@@ -1,8 +1,6 @@
-export { ServerChannel } from './src/main/ets/ServerChannel'
+export { JWorkerChannel } from './src/main/ets/JWorkerChannel'
 
 export { initJWorker } from './src/main/ets/JWorkerExt'
-
-export { ClientChannel } from './src/main/ets/ClientChannel'
 
 export { JWorker } from './src/main/ets/JWorker'
 

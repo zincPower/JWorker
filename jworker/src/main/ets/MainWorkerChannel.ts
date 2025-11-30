@@ -1,10 +1,11 @@
 import { Messenger } from './JWorker'
 import { Message, MethodCallHandler } from './Data'
 import { Log } from './log/Log'
+import { Channel } from './Channel'
 
-const TAG = "ClientChannel"
+const TAG = "MainWorkerChannel"
 
-export class ClientChannel {
+export class MainWorkerChannel implements Channel {
   private channelName: string
   private messenger: Messenger
 
@@ -18,7 +19,7 @@ export class ClientChannel {
     this.messenger.setMethodCallHandler(this.channelName, handler)
   }
 
-  send(methodName: string, data: any = undefined, transfer?: ArrayBuffer[]): Promise<any> {
+  send(methodName: string, data?: any, transfer?: ArrayBuffer[]): Promise<any> {
     Log.i(TAG, `【send】主 worker ----发送----> 子 worker methodName=${methodName} data=${JSON.stringify(data)}`)
     const message = new Message(this.channelName, methodName, data)
     return new Promise((resolve: Function, reject: Function) => {

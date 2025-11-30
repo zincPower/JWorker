@@ -1,11 +1,16 @@
+import { Channel } from './Channel'
 import { Message, MethodCallHandler } from './Data'
 import { subWorkerHandler } from './SubWorkerHandler'
 
-class ServerChannelProxy {
+class SubWorkerChannel implements Channel {
   private channelName: string
 
   constructor(channelName: string) {
     this.channelName = channelName
+  }
+
+  setMethodCallHandler(handler: MethodCallHandler) {
+    subWorkerHandler.methodHandlerMap.set(this.channelName, handler)
   }
 
   send(methodName: string, data: any = undefined, transfer?: ArrayBuffer[]): Promise<any> {
@@ -20,7 +25,8 @@ class ServerChannelProxy {
   }
 }
 
-export function ServerChannel(channelName: string, methodHandler: MethodCallHandler): ServerChannelProxy {
-  subWorkerHandler.methodHandlerMap.set(channelName, methodHandler)
-  return new ServerChannelProxy(channelName)
+export function JWorkerChannel(channelName: string, methodHandler: MethodCallHandler): Channel {
+  const channel = new SubWorkerChannel(channelName)
+  channel.setMethodCallHandler(methodHandler)
+  return channel
 }

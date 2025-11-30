@@ -1,5 +1,6 @@
-import worker, { MessageEvents } from '@ohos.worker'
-import { ClientChannel } from './ClientChannel'
+import worker from '@ohos.worker'
+import { Channel } from './Channel'
+import { MainWorkerChannel } from './MainWorkerChannel'
 import { Envelope, Message, MethodCallHandler, Reply } from './Data'
 import { Log } from './log/Log'
 
@@ -9,7 +10,7 @@ export function JWorker(workerPath: string): JWorker {
   return new JWorkerImpl(workerPath)
 }
 
-export interface JWorker {
+interface JWorker {
   /**
    * 启动 Worker
    */
@@ -24,7 +25,7 @@ export interface JWorker {
    * 创建通讯 channel
    * @param channelName channel 名称
    */
-  createChannel(channelName: string): ClientChannel
+  createChannel(channelName: string): Channel
 }
 
 export interface Messenger {
@@ -49,7 +50,7 @@ class JWorkerImpl implements JWorker, Messenger {
     Log.i(TAG, `【init】启动 JWorker workerPath=${this.workerPath}`)
     try {
       this.worker = new worker.ThreadWorker(this.workerPath)
-      this.worker.onmessage = (event: MessageEvents) => {
+      this.worker.onmessage = (event) => {
         Log.i(TAG, `【onmessage】子 Worker ---消息到达---> 主 Worker event=${JSON.stringify(event)}`)
         this.handleMessage(event.data as Envelope)
       }
@@ -84,9 +85,9 @@ class JWorkerImpl implements JWorker, Messenger {
     Log.i(TAG, `【send】主 Worker ----发送----> 子 Worker envelope=${JSON.stringify(envelope)}`)
   }
 
-  createChannel(channelName: string): ClientChannel {
+  createChannel(channelName: string): Channel {
     Log.i(TAG, `【createChannel】创建通讯 channel channelName=${channelName}`)
-    return new ClientChannel(channelName, this)
+    return new MainWorkerChannel(channelName, this)
   }
 
   private async handleMessage(envelope: Envelope) {

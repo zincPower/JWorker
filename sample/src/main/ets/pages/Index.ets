@@ -1,4 +1,4 @@
-import { Any, ClientChannel, JWorker } from 'jworker';
+import { Any, JWorker } from 'jworker';
 import { Log } from '../log/Log';
 
 const TAG = "Index"
