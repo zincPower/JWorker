@@ -1,7 +1,7 @@
 import { MessageEvents, worker } from "@kit.ArkTS"
 import { subWorkerHandler } from "./SubWorkerHandler"
 import { Log } from "./log/Log"
-import { Envelope } from "./Message"
+import { Envelope } from "./Data"
 
 const TAG = "JWorkerExt"
 
@@ -11,16 +11,16 @@ export function initJWorker() {
   subWorkerHandler.worker = workerPort
 
   workerPort.onmessage = (event: MessageEvents) => {
-    Log.i(TAG, `【onmessage】子 Worker 接收消息 event=${event}`)
+    Log.i(TAG, `【onmessage】主 Worker ---消息到达---> 子 Worker event=${JSON.stringify(event)}`)
     const envelope = event.data as Envelope
     subWorkerHandler.handleMessage(workerPort, envelope)
   }
 
   workerPort.onmessageerror = (error) => {
-    Log.i(TAG, `【onmessageerror】子 Worker 错误消息 error=${error}`)
+    Log.e(TAG, `【onmessageerror】子 Worker 错误消息 error=${error}`)
   }
 
   workerPort.onerror = (error) => {
-    Log.i(TAG, `【onerror】子 Worker 发生错误 error=${error}`)
+    Log.e(TAG, `【onerror】子 Worker 发生错误 error=${error}`)
   }
 }

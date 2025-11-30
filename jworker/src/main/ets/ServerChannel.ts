@@ -1,6 +1,5 @@
-import { Message } from './Message'
+import { Message, MethodCallHandler } from './Data'
 import { subWorkerHandler } from './SubWorkerHandler'
-import { MethodCallHandler } from './Type'
 
 class ServerChannelProxy {
   private channelName: string

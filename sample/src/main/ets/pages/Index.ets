@@ -1,6 +1,5 @@
 import { Any, ClientChannel, JWorker } from 'jworker';
 import { Log } from '../log/Log';
-import { worker } from '@kit.ArkTS';
 
 const TAG = "Index"
 
@@ -31,13 +30,13 @@ struct Index {
       Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
         Button("启动 Worker")
           .onClick(async () => {
-            const worker = new JWorker("sample/ets/worker/SimpleWorker.ets")
-            const simpleWorkerChannel = new ClientChannel("SimpleWorkerChannel", worker)
+            const worker = JWorker("sample/ets/worker/SimpleWorker.ets")
+            const simpleWorkerChannel = worker.createChannel("SimpleWorkerChannel")
             simpleWorkerChannel.setMethodCallHandler(async (methodName: string, data: Any) => {
               Log.i(TAG, `【SimpleWorkerChannel-handleMessage】methodName=${methodName} data=${data}`)
             })
             worker.init()
-            simpleWorkerChannel.send("江澎涌")
+            simpleWorkerChannel.send("sayHello", "江澎涌")
           }).margin(2.5)
 
       }.backgroundColor(`#91d5ff`)

@@ -6,4 +6,4 @@ export { ClientChannel } from './src/main/ets/ClientChannel'
 
 export { JWorker } from './src/main/ets/JWorker'
 
-export { Reply, MethodCallHandler, Any } from './src/main/ets/Type'
+export { Reply, MethodCallHandler, Any } from './src/main/ets/Data'

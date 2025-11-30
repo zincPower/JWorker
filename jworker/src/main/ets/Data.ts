@@ -1,3 +1,9 @@
+export type Reply = (data: any) => void
+
+export type MethodCallHandler = (methodName: string, data: any) => Promise<any>
+
+export type Any = null | undefined | {} | Function
+
 export class Message {
   channelName: string // 渠道名
   methodName: string // 方法名

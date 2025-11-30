@@ -1,7 +1,7 @@
 import hilog from '@ohos.hilog'
 
 class Logger {
-  private domain = 0x0000
+  private domain = 0x1000
   isDebug = true
 
   d(tag: string, message: string): void {
