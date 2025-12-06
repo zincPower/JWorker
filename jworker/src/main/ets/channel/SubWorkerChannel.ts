@@ -1,6 +1,6 @@
-import { Channel } from './Channel'
-import { Message, MethodCallHandler } from './Data'
-import { subWorkerHandler } from './SubWorkerHandler'
+import { Channel } from "../Channel"
+import { Message, MethodCallHandler } from "../Data"
+import { subWorkerHandler } from "../SubWorkerHandler"
 
 class SubWorkerChannel implements Channel {
   private channelName: string
@@ -14,7 +14,7 @@ class SubWorkerChannel implements Channel {
   }
 
   send(methodName: string, data: any = undefined, transfer?: ArrayBuffer[]): Promise<any> {
-    let message = new Message(this.channelName, methodName, data)
+    const message = new Message(this.channelName, methodName, data)
     return new Promise((resolve: Function, reject: Function) => {
       try {
         subWorkerHandler.send(message, (result: any) => resolve(result), transfer)

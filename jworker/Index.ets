@@ -1,7 +1,7 @@
-export { JWorkerChannel } from './src/main/ets/JWorkerChannel'
+export { JWorkerChannel } from './src/main/ets/channel/SubWorkerChannel'
 
-export { initJWorker } from './src/main/ets/JWorkerExt'
+export { initJWorker, SubWorker } from './src/main/ets/JWorkerExt'
 
-export { JWorker } from './src/main/ets/JWorker'
+export { JWorker, createJWorker } from './src/main/ets/JWorker'
 
-export { Reply, MethodCallHandler, Any } from './src/main/ets/Data'
+export { MethodCallHandler, Any, TransferData } from './src/main/ets/Data'
