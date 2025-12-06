@@ -3,7 +3,7 @@
   "buildOption": {
     "sourceOption": {
       "workers": [
-        "./src/main/ets/worker/SimpleWorker.ets"
+        "./src/main/ets/worker/simple/SimpleWorker.ets"
       ]
     }
   },
