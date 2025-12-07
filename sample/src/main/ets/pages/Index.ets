@@ -1,5 +1,6 @@
 import { MainMultiWorkerComponent } from '../worker/mainmultiworker/MainMultiWorkerComponent'
 import { SimpleWorkerComponent } from '../worker/simple/SimpleWorkerComponent'
+import { SubMultiWorkerComponent } from '../worker/submultiworker/SubMultiWorkerComponent'
 
 @Entry
 @Component
@@ -9,6 +10,7 @@ struct Index {
       Column() {
         SimpleWorkerComponent()
         MainMultiWorkerComponent()
+        SubMultiWorkerComponent()
       }
       .width('100%')
     }

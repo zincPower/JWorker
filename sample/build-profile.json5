@@ -4,7 +4,9 @@
     "sourceOption": {
       "workers": [
         "./src/main/ets/worker/simple/SimpleWorker.ets",
-        "./src/main/ets/worker/mainmultiworker/MainMultiWorker.ets"
+        "./src/main/ets/worker/mainmultiworker/MainMultiWorker.ets",
+        "./src/main/ets/worker/submultiworker/ParentWorker.ets",
+        "./src/main/ets/worker/submultiworker/ChildWorker.ets"
       ]
     }
   },

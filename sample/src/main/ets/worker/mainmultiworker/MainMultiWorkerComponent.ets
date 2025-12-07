@@ -85,7 +85,7 @@ export struct MainMultiWorkerComponent {
           .textAlign(TextAlign.Center)
           .margin(2.5)
 
-        Button("使用 JWorker1 的渠道发送")
+        Button("JWorker1 发送消息")
           .onClick(async () => {
             if (this.worker1 == undefined) {
               promptAction.showToast({ message: "Worker 还未启动" })
@@ -97,7 +97,7 @@ export struct MainMultiWorkerComponent {
             }
           }).margin(2.5)
 
-        Button("使用 JWorker2 的渠道发送")
+        Button("JWorker2 发送消息")
           .onClick(async () => {
             if (this.worker2 == undefined) {
               promptAction.showToast({ message: "Worker 还未启动" })

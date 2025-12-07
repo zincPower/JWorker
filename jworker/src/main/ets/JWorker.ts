@@ -70,7 +70,7 @@ class JWorkerImpl implements JWorker {
         Log.e(TAG, `【onerror】父 Worker 发生错误 error=${error}`)
       }
       this.worker.onexit = (code) => {
-        Log.i(TAG, `【onerror】父 Worker 退出 code=${code}`)
+        Log.i(TAG, `【onexit】父 Worker 退出 code=${code}`)
         this.clearReply()
         this.worker = undefined
       }
@@ -108,15 +108,15 @@ class JWorkerImpl implements JWorker {
   }
 
   send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
-    if (this.worker != undefined) {
+    if (this.worker == undefined) {
+      Log.e(TAG, "【send】无法进行正常通讯")
+      reply(undefined)
+    } else {
       const replyId = this.nextReplyId++
       this.pendingReplies.set(replyId, reply)
       const envelope = new Envelope(replyId, message)
       this.worker.postMessage(envelope, transfer ?? [])
       Log.i(TAG, `【send】父 Worker ----发送----> 子 Worker envelope=${JSON.stringify(envelope)}`)
-    } else {
-      Log.e(TAG, "【send】无法进行正常通讯")
-      reply(undefined)
     }
   }
 
