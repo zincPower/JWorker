@@ -10,19 +10,26 @@ const TAG = "JWorkerExt"
  */
 export interface SubWorker {
   /**
-   * 关闭子 Worker
+   * 释放 JWorker
    */
-  close()
+  release()
 }
 
+let isInitialized = false
+
 /**
- * 在子 Worker 中进行 init 子 Worker
+ * 进行 init 子 Worker
  * @returns 返回子 Worker 实例
  */
 export function initJWorker(): SubWorker {
+  if (isInitialized) {
+    Log.e(TAG, '【initJWorker】JWorker 已经启动')
+    return
+  }
+
   Log.i(TAG, `【initJWorker】子 Worker 启动`)
   const workerPort = worker.workerPort
-  subWorkerHandler.worker = workerPort
+  subWorkerHandler.setWorker(workerPort)
 
   workerPort.onmessage = (event: MessageEvents) => {
     Log.i(TAG, `【onmessage】父 Worker ---消息到达---> 子 Worker event=${JSON.stringify(event)}`)
@@ -38,6 +45,7 @@ export function initJWorker(): SubWorker {
     Log.e(TAG, `【onerror】子 Worker 发生错误 error=${error}`)
   }
 
+  isInitialized = true
   return new SubWorkerImpl(workerPort)
 }
 
@@ -48,9 +56,9 @@ class SubWorkerImpl implements SubWorker {
     this.worker = worker
   }
 
-  close(): void {
-    Log.i(TAG, `【close】关闭子 Worker`)
-    subWorkerHandler.isRunning = false
+  release(): void {
+    Log.i(TAG, `【close】JWorker 开始关闭子 Worker`)
+    subWorkerHandler.release()
     this.worker.close()
   }
 }

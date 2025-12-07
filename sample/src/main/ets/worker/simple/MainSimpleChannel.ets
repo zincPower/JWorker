@@ -1,5 +1,4 @@
-import { Any } from "jworker";
-import { Channel } from "jworker/src/main/ets/Channel";
+import { Any, Channel } from "jworker";
 import { Log } from "../../log/Log";
 import { User } from "./Bean";
 

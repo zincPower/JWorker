@@ -42,7 +42,7 @@ export struct SimpleWorkerComponent {
             this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
             this.simpleWorkerChannel = new MainSimpleChannel()
             this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
-            this.worker.init()
+            this.worker.start()
           }).margin(2.5)
 
         Button("在父 Worker 关闭")

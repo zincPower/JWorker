@@ -18,7 +18,7 @@ export interface JWorker {
   /**
    * 启动 Worker
    */
-  init()
+  start()
 
   /**
    * 释放 Worker
@@ -27,27 +27,16 @@ export interface JWorker {
 
   /**
    * 添加通讯 channel
-   * @param channelName channel 名称
+   * @param channelName 渠道名称
    * @param channel 渠道处理类
    */
   addChannel(channelName: string, channel: Channel)
 
   /**
    * 移除通讯 channel
-   * @param channelName
+   * @param channelName 渠道名称
    */
   removeChannel(channelName: string)
-}
-
-/**
- * 信使接口，实现接口的类说明有以下能力：
- * 1、能够设置渠道处理器
- * 2、能够发送消息
- */
-export interface Messenger {
-  setMethodCallHandler(channelName: string, channel: Channel)
-
-  send(message: Message, reply: Reply, transfer?: ArrayBuffer[])
 }
 
 class JWorkerImpl implements JWorker {
@@ -62,8 +51,12 @@ class JWorkerImpl implements JWorker {
     Log.i(TAG, `【constructor】构造 workerPath=${workerPath}`)
   }
 
-  init() {
-    Log.i(TAG, `【init】启动 JWorker workerPath=${this.workerPath}`)
+  start() {
+    if (this.worker != undefined) {
+      Log.e(TAG, `【start】JWorker 已经启动了 workerPath=${this.workerPath}`)
+      return
+    }
+    Log.i(TAG, `【start】启动 JWorker workerPath=${this.workerPath}`)
     try {
       this.worker = new worker.ThreadWorker(this.workerPath)
       this.worker.onmessage = (event) => {
@@ -82,22 +75,16 @@ class JWorkerImpl implements JWorker {
         this.worker = undefined
       }
     } catch (e) {
-      Log.e(TAG, `【init】worker 创建失败 e=${e}`)
+      Log.e(TAG, `【start】JWorker 创建失败 workerPath=${this.workerPath} e=${e}`)
+      this.clearReply()
+      this.worker = undefined
     }
   }
 
   release() {
-    Log.i(TAG, `【release】`)
+    Log.i(TAG, `【release】JWorker 在主 Worker 进行释放`)
     this.worker?.terminate()
     this.worker = undefined
-  }
-
-  send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
-    const replyId = this.nextReplyId++
-    this.pendingReplies.set(replyId, reply)
-    const envelope = new Envelope(replyId, message)
-    this.worker?.postMessage(envelope, transfer ?? [])
-    Log.i(TAG, `【send】父 Worker ----发送----> 子 Worker envelope=${JSON.stringify(envelope)}`)
   }
 
   addChannel(channelName: string, channel: Channel) {
@@ -120,22 +107,31 @@ class JWorkerImpl implements JWorker {
     this.channels.delete(channelName)
   }
 
-  private async handleMessage(envelope: Envelope) {
-    let isReplied = false
-    for (const [replyId, reply] of this.pendingReplies) {
-      if (replyId == envelope.responseId) {
-        Log.i(TAG, `【handleMessage】父 Worker ----回复----> 子 Worker replyId=${replyId} envelope=${JSON.stringify(envelope)}`)
-        reply(envelope.message.data)
-        isReplied = true
-        break
-      }
-    }
-    if (isReplied) {
-      this.pendingReplies.delete(envelope.responseId)
+  send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
+    if (this.worker != undefined) {
+      const replyId = this.nextReplyId++
+      this.pendingReplies.set(replyId, reply)
+      const envelope = new Envelope(replyId, message)
+      this.worker.postMessage(envelope, transfer ?? [])
+      Log.i(TAG, `【send】父 Worker ----发送----> 子 Worker envelope=${JSON.stringify(envelope)}`)
     } else {
-      const handler = this.channels.get(envelope.message.channelName)
-      Log.i(TAG, `【handleMessage】父 Worker ----处理----> 子 worker handler=${handler} envelope=${envelope}`)
-      const result = handler == null ? null : await handler.handleMessage(envelope.message.methodName, envelope.message.data)
+      Log.e(TAG, "【send】无法进行正常通讯")
+      reply(undefined)
+    }
+  }
+
+  private async handleMessage(envelope: Envelope) {
+    if (envelope.responseId >= 1) {
+      const reply = this.pendingReplies.get(envelope.responseId)
+      Log.i(TAG, `【handleMessage】父 Worker ----回复----> 子 Worker envelope=${JSON.stringify(envelope)} reply=${reply}`)
+      if (reply != undefined) {
+        reply(envelope.message.data)
+        this.pendingReplies.delete(envelope.responseId)
+      }
+    } else {
+      const channel = this.channels.get(envelope.message.channelName)
+      Log.i(TAG, `【handleMessage】父 Worker ----处理----> 子 worker channel=${channel} envelope=${envelope}`)
+      const result = channel == null ? null : await channel.handleMessage(envelope.message.methodName, envelope.message.data)
       let transfer: ArrayBuffer[] = []
       let data = result
       if (result instanceof TransferData) {

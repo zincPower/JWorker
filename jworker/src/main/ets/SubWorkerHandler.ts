@@ -6,24 +6,28 @@ import { Log } from './Log'
 const TAG = "SubWorkerHandler"
 
 class SubWorkerHandler {
-  worker: ThreadWorkerGlobalScope
-  isRunning = true
-  channels = new Map<string, Channel>()
+  private worker: ThreadWorkerGlobalScope | undefined
+  private isRunning = true
+  private channels = new Map<string, Channel>()
   private nextReplyId = -1
   private pendingReplies = new Map<number, Reply>()
 
+  setWorker(worker: ThreadWorkerGlobalScope) {
+    this.worker = worker
+  }
+
+  addChannel(channelName: string, channel: Channel) {
+    this.channels.set(channelName, channel)
+  }
+
   async handleMessage(worker: ThreadWorkerGlobalScope, envelope: Envelope) {
-    let isReplied = false
-    for (const [replyId, reply] of this.pendingReplies) {
-      if (replyId == envelope.responseId) {
-        Log.i(TAG, `【handleMessage】子 worker ----回复----> 父 Worker replyId=${replyId} envelope=${envelope}`)
+    if (envelope.responseId <= -1) {
+      const reply = this.pendingReplies.get(envelope.responseId)
+      Log.i(TAG, `【handleMessage】子 worker ----回复----> 父 Worker envelope=${envelope} reply=${reply}`)
+      if (reply != undefined) {
         reply(envelope.message.data)
-        isReplied = true
-        break
+        this.pendingReplies.delete(envelope.responseId)
       }
-    }
-    if (isReplied) {
-      this.pendingReplies.delete(envelope.responseId)
     } else {
       const handler = this.channels.get(envelope.message.channelName)
       Log.i(TAG, `【handleMessage】子 worker ---处理回复---> 父 Worker handler=${handler} envelope=${JSON.stringify(envelope)}`)
@@ -42,14 +46,22 @@ class SubWorkerHandler {
     }
   }
 
-  send(message: Message, callback: Reply, transfer?: ArrayBuffer[]) {
-    const replyId = this.nextReplyId--
-    this.pendingReplies.set(replyId, callback)
-    const envelope = new Envelope(replyId, message)
-    if (this.isRunning) {
+  send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
+    if (this.isRunning && this.worker != undefined) {
+      const replyId = this.nextReplyId--
+      this.pendingReplies.set(replyId, reply)
+      const envelope = new Envelope(replyId, message)
       this.worker.postMessage(envelope, transfer ?? [])
+      Log.i(TAG, `【send】子 Worker ----发送----> 父 Worker envelope=${JSON.stringify(envelope)}`)
+    } else {
+      Log.e(TAG, `【send】无法进行通讯 isRunning=${this.isRunning} worker=${this.worker}`)
+      reply(undefined)
     }
-    Log.i(TAG, `【send】子 Worker ----发送----> 父 Worker envelope=${JSON.stringify(envelope)}`)
+  }
+
+  release() {
+    this.isRunning = false
+    this.worker = undefined
   }
 }
 

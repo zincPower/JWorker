@@ -1,4 +1,6 @@
-export  { JWorkerChannel } from './src/main/ets/JWorkerChannel'
+export  { Channel } from './src/main/ets/Channel'
+
+export { JWorkerChannel } from './src/main/ets/JWorkerChannel'
 
 export { initJWorker, SubWorker } from './src/main/ets/JWorkerExt'
 

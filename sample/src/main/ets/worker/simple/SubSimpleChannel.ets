@@ -1,9 +1,8 @@
-import { Any, SubWorker, TransferData } from "jworker";
+import { Any, Channel, SubWorker, TransferData } from "jworker";
 import { Log } from "../../log/Log";
 import { User } from "./Bean";
 import { image } from "@kit.ImageKit";
 import { PixelMapConverter } from "../../utils/PixelMapConverter";
-import { Channel } from "jworker/src/main/ets/Channel";
 
 const TAG = "SubSimpleChannel"
 
@@ -39,7 +38,7 @@ export class SubSimpleChannel extends Channel {
         return user.name
       }
       case "exit": {
-        this.worker.close()
+        this.worker.release()
         return `Bye, I've already closed at sub-worker.`
       }
       default: {
