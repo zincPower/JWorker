@@ -10,8 +10,3 @@ export interface Address {
   province: string
   city: string
 }
-
-export interface ReadImage {
-  context: Context
-  imagePath: string
-}

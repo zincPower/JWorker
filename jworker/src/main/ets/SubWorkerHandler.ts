@@ -1,13 +1,14 @@
 import { ThreadWorkerGlobalScope } from '@ohos.worker'
-import { Envelope, Message, MethodCallHandler, Reply, TransferData } from './Data'
-import { Log } from './log/Log'
+import { Channel } from './Channel'
+import { Envelope, Message, Reply, TransferData } from './Data'
+import { Log } from './Log'
 
 const TAG = "SubWorkerHandler"
 
 class SubWorkerHandler {
   worker: ThreadWorkerGlobalScope
   isRunning = true
-  methodHandlerMap = new Map<string, MethodCallHandler>()
+  channels = new Map<string, Channel>()
   private nextReplyId = -1
   private pendingReplies = new Map<number, Reply>()
 
@@ -24,9 +25,9 @@ class SubWorkerHandler {
     if (isReplied) {
       this.pendingReplies.delete(envelope.responseId)
     } else {
-      const handler = this.methodHandlerMap.get(envelope.message.channelName)
+      const handler = this.channels.get(envelope.message.channelName)
       Log.i(TAG, `【handleMessage】子 worker ---处理回复---> 父 Worker handler=${handler} envelope=${JSON.stringify(envelope)}`)
-      const result = handler == null ? null : await handler(envelope.message.methodName, envelope.message.data)
+      const result = handler == null ? null : await handler.handleMessage(envelope.message.methodName, envelope.message.data)
       let transfer: ArrayBuffer[] = []
       let data = result
       if (result instanceof TransferData) {

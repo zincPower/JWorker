@@ -3,8 +3,8 @@ import { Channel } from "jworker/src/main/ets/Channel"
 import { Log } from "../../log/Log"
 import { User } from "./Bean"
 import { promptAction } from "@kit.ArkUI"
-import image from "@ohos.multimedia.image"
 import { PixelMapConverter } from "../../utils/PixelMapConverter"
+import { MainSimpleChannel } from "./MainSimpleChannel"
 
 const TAG = `SimpleWorkerComponent`
 
@@ -12,8 +12,7 @@ const TAG = `SimpleWorkerComponent`
 export struct SimpleWorkerComponent {
   private worker: JWorker | undefined = undefined
   private simpleWorkerChannel: Channel | undefined = undefined
-  @Local
-  private imagePixelMap: PixelMap | undefined = undefined
+  @Local private cropPixelMap: PixelMap | undefined = undefined
 
   build() {
     Column() {
@@ -37,14 +36,12 @@ export struct SimpleWorkerComponent {
         Button("启动 Worker")
           .onClick(async () => {
             if (this.worker) {
-              Log.i(TAG, `已经有 Worker 啦，不再创建`)
+              promptAction.showToast({ message: `已经有 Worker 啦，不再创建` })
               return
             }
             this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
-            this.simpleWorkerChannel = this.worker.createChannel("SimpleWorkerChannel")
-            this.simpleWorkerChannel.setMethodCallHandler(async (methodName: string, data: Any) => {
-              Log.i(TAG, `【SimpleWorkerChannel-handleMessage】methodName=${methodName} data=${data}`)
-            })
+            this.simpleWorkerChannel = new MainSimpleChannel()
+            this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
             this.worker.init()
           }).margin(2.5)
 
@@ -67,7 +64,7 @@ export struct SimpleWorkerComponent {
       .borderRadius({ topLeft: 5, topRight: 5 })
 
       Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-        Text(`消息发送、处理`)
+        Text(`发送、处理消息\n主 Worker ---> 子 Worker`)
           .width(`100%`)
           .fontColor(Color.White)
           .fontWeight(800)
@@ -121,30 +118,66 @@ export struct SimpleWorkerComponent {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const imagePath = "image1.jpeg"
-            let response = (await this.simpleWorkerChannel?.send("getImage", {
-              "context": this.getUIContext().getHostContext(),
-              "imagePath": imagePath,
-            })) as Any
-            Log.i(TAG, `【复杂结构消息】发送前父 Worker 数据 imagePath=${imagePath} 子 Worker 回复 response=${JSON.stringify(response)}`)
-            if (response == null) {
-              return
+            const uint8Array = await getContext(this).resourceManager.getRawFileContent("image1.jpeg")
+            const arrayBuffer = uint8Array.buffer
+            const response = await this.simpleWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
+            if (response) {
+              this.cropPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
             }
-            response = await this.simpleWorkerChannel?.send("cropImage", response, [response as ArrayBuffer])
-            if (response == null) {
-              return
-            }
-            this.imagePixelMap = await PixelMapConverter.arrayBufferToPixelMap(response as ArrayBuffer)
           }).margin(2.5)
 
-        Image(this.imagePixelMap)
-          .width(`100%`)
-          .height(200)
-          .objectFit(ImageFit.Contain)
+        Row() {
+          Text("主 Worker 原图")
+            .layoutWeight(1)
+            .height(20)
+            .fontSize(12)
+            .fontColor(Color.White)
+            .textAlign(TextAlign.Center)
+          Text("子 Worker 裁剪")
+            .layoutWeight(1)
+            .height(20)
+            .fontSize(12)
+            .fontColor(Color.White)
+            .textAlign(TextAlign.Center)
+        }.width(`100%`)
+        .visibility(this.cropPixelMap == undefined ? Visibility.None : Visibility.Visible)
 
+        Row() {
+          Image($rawfile('image1.jpeg'))
+            .layoutWeight(1)
+            .objectFit(ImageFit.Contain)
+          Image(this.cropPixelMap)
+            .layoutWeight(1)
+            .objectFit(ImageFit.Contain)
+        }.width(`100%`)
+        .height(200)
+        .visibility(this.cropPixelMap == undefined ? Visibility.None : Visibility.Visible)
       }.backgroundColor(`#FFA4A4`)
       .padding(5)
+
+      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+        Text(`发送、处理消息\n子 Worker ---> 主 Worker`)
+          .width(`100%`)
+          .fontColor(Color.White)
+          .fontWeight(800)
+          .fontSize(20)
+          .textAlign(TextAlign.Center)
+          .margin(2.5)
+
+        Button("子 Worker 主动获取复杂信息")
+          .onClick(async () => {
+            if (this.simpleWorkerChannel == null) {
+              promptAction.showToast({ message: "Worker 还没有启动" })
+              return
+            }
+            const response = (await this.simpleWorkerChannel?.send("getUserName")) as Any
+            Log.i(TAG, `【子 Worker 主动获取复杂信息】子 Worker 回复 response=${JSON.stringify(response)}`)
+          }).margin(2.5)
+
+      }.backgroundColor(`#FFBDBD`)
+      .padding(5)
       .borderRadius({ bottomLeft: 5, bottomRight: 5 })
+
     }.padding(5)
   }
 }

@@ -1,8 +1,6 @@
-import { Any, initJWorker, JWorkerChannel } from 'jworker'
-import { SimpleWorkerChannel } from './SimpleWorkerChannel'
+import { initJWorker, JWorkerChannel } from 'jworker'
+import { SubSimpleChannel } from './SubSimpleChannel'
 
 const worker = initJWorker()
 
-const simpleWorkerChannel = new SimpleWorkerChannel(worker)
-
-JWorkerChannel("SimpleWorkerChannel", async (methodName: string, data: Any) => simpleWorkerChannel.handleMessage(methodName, data))
+JWorkerChannel("SimpleWorkerChannel", new SubSimpleChannel(worker))

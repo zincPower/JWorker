@@ -1,8 +1,7 @@
 import worker from '@ohos.worker'
 import { Channel } from './Channel'
-import { ParentWorkerChannel } from './channel/ParentWorkerChannel'
-import { Envelope, Message, MethodCallHandler, Reply, TransferData } from './Data'
-import { Log } from './log/Log'
+import { Envelope, Message, Reply, TransferData } from './Data'
+import { Log } from './Log'
 
 const TAG = "JWorker"
 
@@ -27,10 +26,17 @@ export interface JWorker {
   release()
 
   /**
-   * 创建通讯 channel
+   * 添加通讯 channel
    * @param channelName channel 名称
+   * @param channel 渠道处理类
    */
-  createChannel(channelName: string): Channel
+  addChannel(channelName: string, channel: Channel)
+
+  /**
+   * 移除通讯 channel
+   * @param channelName
+   */
+  removeChannel(channelName: string)
 }
 
 /**
@@ -39,18 +45,17 @@ export interface JWorker {
  * 2、能够发送消息
  */
 export interface Messenger {
-  setMethodCallHandler(channelName: string, handler: MethodCallHandler)
+  setMethodCallHandler(channelName: string, channel: Channel)
 
   send(message: Message, reply: Reply, transfer?: ArrayBuffer[])
 }
 
-class JWorkerImpl implements JWorker, Messenger {
+class JWorkerImpl implements JWorker {
   private workerPath: string
   private worker: worker.ThreadWorker | undefined
   private nextReplyId = 1
-  // TODO 需要清理，在关闭了后
   private pendingReplies = new Map<number, Reply>()
-  private methodCallHandlers = new Map<string, MethodCallHandler>()
+  private channels = new Map<string, Channel>()
 
   constructor(workerPath: string) {
     this.workerPath = workerPath
@@ -83,14 +88,8 @@ class JWorkerImpl implements JWorker, Messenger {
 
   release() {
     Log.i(TAG, `【release】`)
-    // TODO 关闭由子线程关闭
     this.worker?.terminate()
     this.worker = undefined
-  }
-
-  setMethodCallHandler(channelName: string, handler: MethodCallHandler) {
-    Log.i(TAG, `【setMethodCallHandler】父 Worker 设置 channel 处理器 channelName=${channelName} handler=${handler}`)
-    this.methodCallHandlers.set(channelName, handler)
   }
 
   send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
@@ -101,9 +100,24 @@ class JWorkerImpl implements JWorker, Messenger {
     Log.i(TAG, `【send】父 Worker ----发送----> 子 Worker envelope=${JSON.stringify(envelope)}`)
   }
 
-  createChannel(channelName: string): Channel {
-    Log.i(TAG, `【createChannel】创建通讯 channel channelName=${channelName}`)
-    return new ParentWorkerChannel(channelName, this)
+  addChannel(channelName: string, channel: Channel) {
+    Log.i(TAG, `【addChannel】添加通讯 channel channelName=${channelName}`)
+    channel.send = (methodName: string, data?: any, transfer?: ArrayBuffer[]) => {
+      Log.i(TAG, `【send】父 Worker ----发送----> 子 worker methodName=${methodName} data=${JSON.stringify(data)}`)
+      const message = new Message(channelName, methodName, data)
+      return new Promise((resolve: Function, reject: Function) => {
+        try {
+          this.send(message, (result: any) => resolve(result), transfer)
+        } catch (error) {
+          reject(error)
+        }
+      })
+    }
+    this.channels.set(channelName, channel)
+  }
+
+  removeChannel(channelName: string): void {
+    this.channels.delete(channelName)
   }
 
   private async handleMessage(envelope: Envelope) {
@@ -119,9 +133,9 @@ class JWorkerImpl implements JWorker, Messenger {
     if (isReplied) {
       this.pendingReplies.delete(envelope.responseId)
     } else {
-      const handler = this.methodCallHandlers.get(envelope.message.channelName)
+      const handler = this.channels.get(envelope.message.channelName)
       Log.i(TAG, `【handleMessage】父 Worker ----处理----> 子 worker handler=${handler} envelope=${envelope}`)
-      const result = handler == null ? null : await handler(envelope.message.methodName, envelope.message.data)
+      const result = handler == null ? null : await handler.handleMessage(envelope.message.methodName, envelope.message.data)
       let transfer: ArrayBuffer[] = []
       let data = result
       if (result instanceof TransferData) {

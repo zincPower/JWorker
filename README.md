@@ -18,6 +18,10 @@
 
 ### 关闭 JWorker
 
+**主 Worker 进行关闭**
+
+**子 Worker 进行关闭**
+
 ## 多个 Worker
 
 ### 项目父 Worker 开多个子 Worker

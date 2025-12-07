@@ -1,6 +1,6 @@
 import { MessageEvents, ThreadWorkerGlobalScope, worker } from "@kit.ArkTS"
 import { subWorkerHandler } from "./SubWorkerHandler"
-import { Log } from "./log/Log"
+import { Log } from "./Log"
 import { Envelope } from "./Data"
 
 const TAG = "JWorkerExt"

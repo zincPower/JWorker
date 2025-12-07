@@ -1,15 +1,17 @@
 import { Any, SubWorker, TransferData } from "jworker";
 import { Log } from "../../log/Log";
-import { ReadImage, User } from "./Bean";
+import { User } from "./Bean";
 import { image } from "@kit.ImageKit";
 import { PixelMapConverter } from "../../utils/PixelMapConverter";
+import { Channel } from "jworker/src/main/ets/Channel";
 
-const TAG = "SimpleWorkerChannel"
+const TAG = "SubSimpleChannel"
 
-export class SimpleWorkerChannel {
+export class SubSimpleChannel extends Channel {
   worker: SubWorker
 
   constructor(worker: SubWorker) {
+    super()
     this.worker = worker
   }
 
@@ -26,23 +28,15 @@ export class SimpleWorkerChannel {
         user.address.city = "PuNing"
         return user
       }
-      case "getImage": {
-        try {
-          const readImage = data as ReadImage
-          const resMgr = readImage.context.resourceManager
-          const uint8Array = await resMgr.getRawFileContent(readImage.imagePath)
-          const arrayBuffer = uint8Array.buffer
-          return new TransferData(arrayBuffer, [arrayBuffer])
-        } catch (error) {
-          Log.e(TAG, `【getImage】获取图片异常 error=${error} data=${JSON.stringify(data)}`)
-          return undefined
-        }
-      }
       case "cropImage": {
         const arrayBuffer = data as ArrayBuffer
         const cropPixelMap = await this.cropImage(arrayBuffer)
         const cropArrayBuffer = await PixelMapConverter.pixelMapToArrayBuffer(cropPixelMap)
         return new TransferData(cropArrayBuffer, [cropArrayBuffer])
+      }
+      case "getUserName": {
+        const user = await this.send("getUserInfo") as User
+        return user.name
       }
       case "exit": {
         this.worker.close()
