@@ -1,4 +1,5 @@
-import { SimpleWorkerComponent } from '../worker/simple/component/SimpleWorkerComponent'
+import { MainMultiWorkerComponent } from '../worker/mainmultiworker/MainMultiWorkerComponent'
+import { SimpleWorkerComponent } from '../worker/simple/SimpleWorkerComponent'
 
 @Entry
 @Component
@@ -7,6 +8,7 @@ struct Index {
     Scroll() {
       Column() {
         SimpleWorkerComponent()
+        MainMultiWorkerComponent()
       }
       .width('100%')
     }

@@ -1,10 +1,10 @@
 import { Any, createJWorker, JWorker } from "jworker"
 import { Channel } from "jworker/src/main/ets/Channel"
-import { Log } from "../../../log/Log"
-import { User } from "../Bean"
+import { Log } from "../../log/Log"
+import { User } from "./Bean"
 import { promptAction } from "@kit.ArkUI"
-import { PixelMapConverter } from "../../../utils/PixelMapConverter"
-import { MainSimpleChannel } from "../channel/MainSimpleChannel"
+import { PixelMapConverter } from "../../utils/PixelMapConverter"
+import { MainSimpleChannel } from "./channel/MainSimpleChannel"
 
 const TAG = `SimpleWorkerComponent`
 
@@ -56,7 +56,7 @@ export struct SimpleWorkerComponent {
         Button("子 Worker 关闭")
           .onClick(async () => {
             const response = await this.simpleWorkerChannel?.send("exit") as Any
-            Log.i(TAG, `子 Worker 回复 response=${JSON.stringify(response)}`)
+            Log.i(TAG, `【子 Worker 关闭】子 Worker 回复 response=${JSON.stringify(response)}`)
             this.simpleWorkerChannel = undefined
             this.worker = undefined
           }).margin(2.5)
