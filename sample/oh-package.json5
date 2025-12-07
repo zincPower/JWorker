@@ -6,7 +6,10 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "jworker": "file:../jworker"
+    // 项目引用
+    // "jworker": "file:../jworker"
+    // 本地引用
+    "jworker": "file:../jworker/build/default/outputs/default/jworker.har"
   }
 }
 

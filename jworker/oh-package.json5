@@ -1,9 +1,9 @@
 {
   "name": "jworker",
   "version": "1.0.0",
-  "description": "Please describe the basic information.",
+  "description": "一套鸿蒙 Worker 的双向 RPC 通讯机制",
   "main": "Index.ets",
-  "author": "",
+  "author": "江澎涌",
   "license": "Apache-2.0",
   "dependencies": {},
 }
