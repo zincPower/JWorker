@@ -1,8 +1,9 @@
 import { Any, Channel, SubWorker, TransferData } from "jworker";
-import { Log } from "../../log/Log";
-import { User } from "./Bean";
+import { Log } from "../../../log/Log";
+import { User } from "../Bean";
 import { image } from "@kit.ImageKit";
-import { PixelMapConverter } from "../../utils/PixelMapConverter";
+import { PixelMapConverter } from "../../../utils/PixelMapConverter";
+import { effectKit } from "@kit.ArkGraphics2D";
 
 const TAG = "SubSimpleChannel"
 
@@ -18,14 +19,8 @@ export class SubSimpleChannel extends Channel {
     Log.i(TAG, `【handleMessage】methodName=${methodName} data=${data}`)
     switch (methodName) {
       case "sayHello": {
-        const name = data as string
-        return `Hello, ${name}. I'm replying to you from the sub-worker.`
-      }
-      case "complexStructure": {
         const user = data as User
-        user.name = "江澎涌"
-        user.address.city = "PuNing"
-        return user
+        return `Hello, ${user.name}. I'm replying to you from the sub-worker.`
       }
       case "cropImage": {
         const arrayBuffer = data as ArrayBuffer
@@ -33,9 +28,22 @@ export class SubSimpleChannel extends Channel {
         const cropArrayBuffer = await PixelMapConverter.pixelMapToArrayBuffer(cropPixelMap)
         return new TransferData(cropArrayBuffer, [cropArrayBuffer])
       }
-      case "getUserName": {
+      case "getUserDes": {
         const user = await this.send("getUserInfo") as User
-        return user.name
+        return `name: ${user.name}, height: ${user.height}`
+      }
+      case "subNoProcessor": {
+        return await this.send("noProcessor") as Any
+      }
+      case "filterImage": {
+        const imagePath = data as string
+        const imageArrayBuffer = await this.send("loadImage", imagePath) as ArrayBuffer
+        const imagePixelMap = await PixelMapConverter.arrayBufferToPixelMap(imageArrayBuffer)
+        const filter = effectKit.createEffect(imagePixelMap)
+        filter.blur(20)
+        const resultPixelMap = await filter.getEffectPixelMap()
+        const filterArrayBuffer = await PixelMapConverter.pixelMapToArrayBuffer(resultPixelMap)
+        return new TransferData(filterArrayBuffer, [filterArrayBuffer])
       }
       case "exit": {
         this.worker.release()

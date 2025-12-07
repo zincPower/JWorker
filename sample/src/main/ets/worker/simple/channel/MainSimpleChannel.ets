@@ -1,6 +1,6 @@
-import { Any, Channel } from "jworker";
-import { Log } from "../../log/Log";
-import { User } from "./Bean";
+import { Any, Channel, TransferData } from "jworker";
+import { Log } from "../../../log/Log";
+import { User } from "../Bean";
 
 const TAG = "MainSimpleChannel"
 
@@ -19,6 +19,12 @@ export class MainSimpleChannel extends Channel {
             "city": "普宁",
           },
         } as User
+      }
+      case "loadImage": {
+        const imagePath = data as string
+        const uint8Array = await getContext(this).resourceManager.getRawFileContent(imagePath)
+        const arrayBuffer = uint8Array.buffer
+        return new TransferData(arrayBuffer, [arrayBuffer])
       }
       default: {
         return undefined

@@ -23,15 +23,15 @@ class SubWorkerHandler {
   async handleMessage(worker: ThreadWorkerGlobalScope, envelope: Envelope) {
     if (envelope.responseId <= -1) {
       const reply = this.pendingReplies.get(envelope.responseId)
-      Log.i(TAG, `【handleMessage】子 worker ----回复----> 父 Worker envelope=${envelope} reply=${reply}`)
+      Log.i(TAG, `【handleMessage】父 worker ----回复----> 子 Worker envelope=${envelope} reply=${reply}`)
       if (reply != undefined) {
         reply(envelope.message.data)
         this.pendingReplies.delete(envelope.responseId)
       }
     } else {
-      const handler = this.channels.get(envelope.message.channelName)
-      Log.i(TAG, `【handleMessage】子 worker ---处理回复---> 父 Worker handler=${handler} envelope=${JSON.stringify(envelope)}`)
-      const result = handler == null ? null : await handler.handleMessage(envelope.message.methodName, envelope.message.data)
+      const channel = this.channels.get(envelope.message.channelName)
+      Log.i(TAG, `【handleMessage】父 worker ---调用---> 子 Worker channel=${channel} envelope=${JSON.stringify(envelope)}`)
+      const result = channel == undefined ? undefined : await channel.handleMessage(envelope.message.methodName, envelope.message.data)
       let transfer: ArrayBuffer[] = []
       let data = result
       if (result instanceof TransferData) {

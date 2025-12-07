@@ -123,15 +123,15 @@ class JWorkerImpl implements JWorker {
   private async handleMessage(envelope: Envelope) {
     if (envelope.responseId >= 1) {
       const reply = this.pendingReplies.get(envelope.responseId)
-      Log.i(TAG, `【handleMessage】父 Worker ----回复----> 子 Worker envelope=${JSON.stringify(envelope)} reply=${reply}`)
+      Log.i(TAG, `【handleMessage】子 Worker ----回复----> 父 Worker envelope=${JSON.stringify(envelope)} reply=${reply}`)
       if (reply != undefined) {
         reply(envelope.message.data)
         this.pendingReplies.delete(envelope.responseId)
       }
     } else {
       const channel = this.channels.get(envelope.message.channelName)
-      Log.i(TAG, `【handleMessage】父 Worker ----处理----> 子 worker channel=${channel} envelope=${envelope}`)
-      const result = channel == null ? null : await channel.handleMessage(envelope.message.methodName, envelope.message.data)
+      Log.i(TAG, `【handleMessage】子 Worker ----调用----> 父 worker channel=${channel} envelope=${JSON.stringify(envelope)}`)
+      const result = channel == undefined ? undefined : await channel.handleMessage(envelope.message.methodName, envelope.message.data)
       let transfer: ArrayBuffer[] = []
       let data = result
       if (result instanceof TransferData) {

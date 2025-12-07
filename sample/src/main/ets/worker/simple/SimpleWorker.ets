@@ -1,5 +1,5 @@
 import { initJWorker, JWorkerChannel } from 'jworker'
-import { SubSimpleChannel } from './SubSimpleChannel'
+import { SubSimpleChannel } from './channel/SubSimpleChannel'
 
 const worker = initJWorker()
 
