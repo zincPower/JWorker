@@ -41,9 +41,9 @@ export struct SimpleWorkerComponent {
               return
             }
             this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
+            this.worker.start()
             this.simpleWorkerChannel = new MainSimpleChannel()
             this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
-            this.worker.start()
           }).margin(2.5)
 
         Button("父 Worker 关闭")
@@ -195,7 +195,7 @@ export struct SimpleWorkerComponent {
             if (response) {
               this.filterPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
             }
-          })
+          }).margin(2.5)
 
         Row() {
           Text("主 Worker 原图")

@@ -15,16 +15,16 @@ export interface SubWorker {
   release()
 }
 
-let isInitialized = false
+let subWorker: SubWorker | undefined = undefined
 
 /**
  * 进行 init 子 Worker
  * @returns 返回子 Worker 实例
  */
 export function initJWorker(): SubWorker {
-  if (isInitialized) {
+  if (subWorker != undefined) {
     Log.e(TAG, '【initJWorker】JWorker 已经启动')
-    return
+    return subWorker
   }
 
   Log.i(TAG, `【initJWorker】子 Worker 启动`)
@@ -45,8 +45,8 @@ export function initJWorker(): SubWorker {
     Log.e(TAG, `【onerror】子 Worker 发生错误 error=${error}`)
   }
 
-  isInitialized = true
-  return new SubWorkerImpl(workerPort)
+  subWorker = new SubWorkerImpl(workerPort)
+  return subWorker
 }
 
 class SubWorkerImpl implements SubWorker {
