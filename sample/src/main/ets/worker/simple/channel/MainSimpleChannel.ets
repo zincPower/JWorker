@@ -12,7 +12,7 @@ export class MainSimpleChannel extends Channel {
         return {
           "name": "江澎涌",
           "year": 1994,
-          height: 170.0,
+          "height": 170.0,
           "address": {
             "country": "中国",
             "province": "广东",

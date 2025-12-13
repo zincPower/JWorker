@@ -87,7 +87,7 @@ export struct SimpleWorkerComponent {
             const user = {
               "name": "jiangpengyong",
               "year": 1994,
-              height: 170.0,
+              "height": 170.0,
               "address": {
                 "country": "China",
                 "province": "GuangDong",

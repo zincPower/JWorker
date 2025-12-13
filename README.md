@@ -12,35 +12,22 @@
 
 JWorker 是基于鸿蒙 Worker 封装的一套 RPC 通讯机制，所以在正式使用之前需要先添加和配置 Worker 的 ets 文件。可以按照[鸿蒙官方 Worker](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/worker-introduction) 的使用文档进行添加配置，这里就不再赘述。
 
-以下代码示例基于创建了一个 `SimpleWorker.ets` Worker 文件，并将其按如下方式添加在 `build-profile.json5` 中
-
-```json
-{
-  "buildOption": {
-    "sourceOption": {
-      "workers": [
-        "./src/main/ets/worker/simple/SimpleWorker.ets"
-      ]
-    }
-  }
-  // 省略其他配置 
-}
-```
-
 ### 1、创建 JWorker
 
-**主 Worker 中** 使用 `createJWorker(workerPath: string)` 创建 `JWorker` 实例，然后调用 `JWorker.start()` 启动 `JWorker` 。 完整代码如下：
+**主 Worker 中**使用 `createJWorker(workerPath: string)` 创建 `JWorker` 实例，然后调用 `JWorker.start()` 启动 `JWorker` 。 完整代码如下：
 
 > `JWorker.start()` 内部会启动 Worker 文件，并关联消息接收、退出接收等回调。
 
 ```ts
-// 将 Worker 的文件路径传给 createJWorker 返回 JWorker 实例
+// 将 Worker 的文件路径传给 createJWorker 方法，会返回 JWorker 实例
 this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
 // 启动 JWorker
 this.worker.start()
 ```
 
-**子 Worker 中** 使用 `initJWorker` 方法让子 Worker 的消息接收、退出接收等回调被关联到 JWorker ，并返回 `SubWorker` 实例。完整代码如下：
+**子 Worker 中**使用 `initJWorker()` 获取 `SubWorker` 实例。完整代码如下：
+
+> `initJWorker()` 内部会让 `SubWorker` 关联子 Worker 的消息接收等回调。
 
 ```ts
 const worker = initJWorker()
@@ -48,21 +35,21 @@ const worker = initJWorker()
 
 ### 2、双向 RPC 通讯
 
-**JWorker 的通讯是基于 Channel 。**
+**JWorker 的通讯是基于 Channel** ，所以主子 Worker 的通讯需要先添加**相同名称的 Channel**。
 
-**主 Worker** 是通过 `JWorker.addChannel(channelName: string, channel: Channel)` 方法进行添加通讯 Channel 。
+**主 Worker** 通过 `JWorker.addChannel(channelName: string, channel: Channel)` 方法进行添加通讯 Channel 。
 
 ```ts
 // 创建通讯渠道 MainSimpleChannel ，需要继承 Channel 
 this.simpleWorkerChannel = new MainSimpleChannel()
-// 添加渠道名为 SimpleWorkerChannel 的通讯 Channel 
+// 添加渠道名为 “SimpleWorkerChannel” 的通讯 Channel 
 this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
 ```
 
-**子 Worker** 是通过 `JWorkerChannel(channelName: string, channel: Channel)` 方法进行添加通讯 Channel 。
+**子 Worker** 通过 `JWorkerChannel(channelName: string, channel: Channel)` 方法进行添加通讯 Channel 。
 
 ```ts
-// 添加渠道名为 SimpleWorkerChannel 的通讯 Channel
+// 添加渠道名为 “SimpleWorkerChannel” 的通讯 Channel
 // 同样 SubSimpleChannel 也需要继承 Channel
 JWorkerChannel("SimpleWorkerChannel", new SubSimpleChannel(worker))
 ```
@@ -70,16 +57,16 @@ JWorkerChannel("SimpleWorkerChannel", new SubSimpleChannel(worker))
 **主 Worker 和子 Worker 通过相同的渠道名称建立通讯通道**，`MainSimpleChannel` 和 `SubSimpleChannel` 通讯规则如下：
 
 - 通过 `handleMessage(methodName: string, data: any): Promise<any>` 接收对方的调用消息，返回值会返回到调用点；
-- 通过 `send(methodName: string, data?: any, transfer?: ArrayBuffer[]) => Promise<any>` 可以主动调用对方方法并携带参数，对方处理完的返回值会以 `Promise<any>` 回到调用点。
+- 通过 `send(methodName: string, data?: any, transfer?: ArrayBuffer[]) => Promise<any>` 可以主动调用对方方法并携带参数，对方处理完的返回值会以 `Promise<any>` 类型返回到调用点。
 
-**主 Worker 调用子 Worker 的逻辑**，只需要通过注册的 `simpleWorkerChannel` 调用 `send` 方法发送即可。
+**主 Worker 调用子 Worker 的逻辑**，通过注册的 `simpleWorkerChannel` 调用 `send` 方法发送即可。
 
 ```ts
-// 主 Worker 中进行发送
+// ============== 主 Worker 中进行发送 ==============
 const user = {
   "name": "jiangpengyong",
   "year": 1994,
-  height: 170.0,
+  "height": 170.0,
   "address": {
     "country": "China",
     "province": "GuangDong",
@@ -91,11 +78,12 @@ const user = {
 const response = (await this.simpleWorkerChannel?.send("sayHello", user)) as Any
 Log.i(TAG, `【发送有处理的消息】子 Worker 回复 response=${JSON.stringify(response)}`)
 
-// 子 Worker 中进行通过 SubSimpleChannel 接收调用方法名称和参数，处理后返回结果
+// ============== 子 Worker 中进行接收处理 ==============
+// 通过 SubSimpleChannel 接收调用方法名称和参数，处理后返回结果
 export class SubSimpleChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     switch (methodName) {
-      // 处理主 Worker 调用的 sayHello 方法，将 data 转为 User 类型并获取对应数据，返回一个 string 结果
+      // 处理主 Worker 调用的 “sayHello” 方法，将 data 转为 User 类型并获取对应数据，返回一个 string 结果
       case "sayHello": {
         const user = data as User
         return `Hello, ${user.name}. I'm replying to you from the sub-worker.`
@@ -104,17 +92,20 @@ export class SubSimpleChannel extends Channel {
     }
   }
 }
+
+// ============== 最终会在 Log 中看到以下输出 ==============
+// 【发送有处理的消息】子 Worker 回复 response="Hello, jiangpengyong. I'm replying to you from the sub-worker."
 ```
 
-**子 Worker 调用主 Worker 的逻辑**，也是同样的流程，只需要通过注册的 `SubSimpleChannel` 调用 `send` 方法发送即可。
+**子 Worker 调用主 Worker 的逻辑**，也是同样的流程，通过注册的 `SubSimpleChannel` 调用 `send` 方法发送即可。
 
 ```ts
-// 子 Worker 调用主 Worker 的逻辑
+// ============== 子 Worker 调用主 Worker 的逻辑 ==============
 export class SubSimpleChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     switch (methodName) {
       case "getUserDes": {
-        // 调用主 Worker 的 getUserInfo 方法，此处没有携带参数，会返回 User 类型
+        // 调用主 Worker 的 “getUserInfo” 方法，此处没有携带参数，会返回 User 类型
         const user = await this.send("getUserInfo") as User
         return `name: ${user.name}, height: ${user.height}`
       }
@@ -123,7 +114,7 @@ export class SubSimpleChannel extends Channel {
   }
 }
 
-// 主 Worker 处理逻辑
+// ============== 主 Worker 处理逻辑 ==============
 export class MainSimpleChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     switch (methodName) {
@@ -132,7 +123,7 @@ export class MainSimpleChannel extends Channel {
         return {
           "name": "江澎涌",
           "year": 1994,
-          height: 170.0,
+          "height": 170.0,
           "address": {
             "country": "中国",
             "province": "广东",
@@ -145,7 +136,7 @@ export class MainSimpleChannel extends Channel {
 }
 ```
 
-> Channel 中包含了 `send(methodName: string, data?: any, transfer?: ArrayBuffer[]) => Promise<any>` 方法，可以在 “ Channel 内部主动调用” 或是 “外部通过实例主动调用”，然后获取数据返回即可。
+> Channel 中包含了 `send(methodName: string, data?: any, transfer?: ArrayBuffer[]) => Promise<any>` 方法，可以在 “ Channel 内部主动调用” 或是 “外部代码通过 Channel 实例主动调用”，`await` 数据返回即可。
 
 ### 3、传递 ArrayBuffer 数据
 
