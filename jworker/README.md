@@ -6,7 +6,9 @@
 
 传统的 Worker 通讯基于事件监听和消息传递，缺乏原生的 `Promise/async-await` 支持，导致逻辑割裂。**JWorker 通过双向 RPC 机制，让主 Worker 可以 await 子 Worker 的执行结果，子 Worker 也可以 await 主 Worker 的响应，将跨 Worker 通讯简化为像调用本地异步函数，消除回调嵌套，保持代码线性流畅。**
 
-## 一、集成
+## 一、安装
+
+运行 `ohpm install jworker` 安装 JWorker 库
 
 ## 二、常规使用
 
