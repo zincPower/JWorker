@@ -1,10 +1,10 @@
 # JWorker
 
-**JWorker 是一套基于 Worker 的双向 RPC 通讯机制。**
+**JWorker 是一套简单易用的基于鸿蒙 Worker 的双向 RPC 通讯机制。**
 
 ![](https://github.com/zincPower/JWorker/blob/main/img/structure.png)
 
-传统的 Worker 通讯无法进行异步等待，导致逻辑割裂。JWorker 让双向通讯都支持异步等待——主 Worker 可以等待子 Worker 的执行结果，子 Worker 也可以等待主 Worker 的响应，**让跨线程调用像本地函数一样流畅紧凑**。
+传统的 Worker 通讯基于事件监听和消息传递，缺乏原生的 `Promise/async-await` 支持，导致逻辑割裂。**JWorker 通过双向 RPC 机制，让主 Worker 可以 await 子 Worker 的执行结果，子 Worker 也可以 await 主 Worker 的响应，将跨 Worker 通讯简化为像调用本地异步函数，消除回调嵌套，保持代码线性流畅。**
 
 ## 一、集成
 
