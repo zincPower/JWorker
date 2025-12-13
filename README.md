@@ -12,6 +12,8 @@
 
 JWorker 是基于鸿蒙 Worker 封装的一套 RPC 通讯机制，所以在正式使用之前需要先添加和配置 Worker 的 ets 文件。可以按照[鸿蒙官方 Worker](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/worker-introduction) 的使用文档进行添加配置，这里就不再赘述。
 
+> “常规使用” 示例完整代码 [传送门](https://github.com/zincPower/JWorker/tree/main/sample/src/main/ets/worker/simple)
+
 ### 1、创建 JWorker
 
 **主 Worker 中**使用 `createJWorker(workerPath: string)` 创建 `JWorker` 实例，然后调用 `JWorker.start()` 启动 `JWorker` 。 完整代码如下：
@@ -250,16 +252,18 @@ worker.release()
 
 ## 三、多个 Worker
 
-### 1、项目父 Worker 开多个子 Worker
+### 1、项目主 Worker 开多个子 Worker
 
 `JWorker` 项目支持开启多个 Worker ，使用 `createJWorker(workerPath: string)` 方法传入不同的路径，管理好返回 `JWorker` 对象即可。
 
+> “项目主 Worker 开多个子 Worker” 示例完整代码 [传送门](https://github.com/zincPower/JWorker/tree/main/sample/src/main/ets/worker/mainmultiworker)
+
 ![](https://github.com/zincPower/JWorker/blob/main/img/main_multi_worker.png)
 
-项目需要构建上图的使用场景，可以通过以下代码创建 `JWorker` 实例。
+假设项目需要构建上图的使用场景，可以通过以下代码创建 `JWorker` 实例。
 
 - 可以使用不同的 Worker ets 文件，也可以使用同一个 Worker ets 文件可以开启多个 `JWorker` 实例。
-- 通过管理好 `JWorker` 实例，添加渠道后进行各自 Worker 通讯，还可以通过项目主 Worker 让数据在多个子 Worker 流动。
+- 通过管理好 `JWorker` 实例，添加渠道后进行各自 Worker 通讯。
 
 ```ts
 // worker0 和 worker1、worker2 使用不同的 Worker ets 文件进行开启不同的 JWorker 实例
@@ -282,11 +286,11 @@ this.worker2.start()
 
 ### 2、子 Worker 开多个子 Worker
 
-`JWorker` 同样支持在子 Worker 开多个 Worker ，可以进行如下图所示的创建和管理。
+`JWorker` 同样支持在子 Worker 中开启多个 `JWorker` ，可以进行如下图所示的创建和管理。
 
 ![](https://github.com/zincPower/JWorker/blob/main/img/sub_multi_worker.png)
 
-可以在子 Worker 需要创建更多子 Worker 的地方调用 `createJWorker` 创建 `JWorker` ，然后进行启动，后续添加 Channel 进行通讯即可。**使用方式和之前的完全一致。**
+可以在子 Worker 需要创建子 Worker 的地方调用 `createJWorker` 方法创建 `JWorker` ，然后进行启动和添加相应 Channel 进行通讯。**使用方式和之前的完全相同。**
 
 ```ts
 export class ParentSubChannel extends Channel {
@@ -298,6 +302,7 @@ export class ParentSubChannel extends Channel {
   }
 
   private startChildrenWorker() {
+    // 创建三个 JWorker 并开启，添加对应 Channel 
     if (this.childWorker1 == undefined) {
       this.childWorker1 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
       this.childWorker1Channel = new ChildMainChannel()
@@ -322,19 +327,19 @@ export class ParentSubChannel extends Channel {
 
 **值得注意**
 
-这种情况下需要控制好 Worker 的关闭流程，应该让项目的主 Worker 通知子 Worker 进行关闭他创建的子 Worker ，然后在关闭自身。具体操作如下：
+这种情况下需要控制好 Worker 的关闭顺序，应该让项目的主 Worker 通知子 Worker 进行关闭他创建的子 Worker ，然后在关闭自身。具体操作如下：
 
 ```ts
 // 项目主 Worker 调用子 Worker 的 exit 方法
 this.workerChannel?.send("exit")
 
-// 子 Worker 接收到 exit 的调用，则调用子 Worker 创建的子 Worker 的 exit 进行退出，并等待所有的 Worker 处理完退出后，在退出自身
+// 子 Worker 接收到主 Worker 的 “exit” 调用，则调用子 Worker 创建的子 Worker 的 “exit” 方法进行退出，并等待所有的子 Worker 处理完再退出自身
 export class ParentSubChannel extends Channel {
   // 省略其他逻辑
   async handleMessage(methodName: string, data: Any) {
     switch (methodName) {
       case "exit": {
-        // 等待所有子 Worker 的退出
+        // 等待所有子 Worker 退出完成
         await Promise.all([this.childWorker1Channel?.send("exit"), this.childWorker2Channel?.send("exit"), this.childWorker3Channel?.send("exit")])
         Log.i(TAG, "【exit】")
         await this.worker?.release()
@@ -354,7 +359,7 @@ export class ParentSubChannel extends Channel {
   }
 }
 
-// 子 Worker 的子 Worker 接收到 exit 的调用，退出自身
+// 子 Worker 的子 Worker 接收到 “exit” 的调用，退出自身
 export class ChildSubChannel extends Channel {
   // 省略其他逻辑
   async handleMessage(methodName: string, data: Any) {
