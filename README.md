@@ -210,11 +210,11 @@ if (response) {
 
 ### 4、关闭 JWorker
 
-在 JWorker 中提供了两种关闭 Worker 的方式，分别为 **主 Worker 进行关闭** 和 **子 Worker 进行关闭** 。可以按业务场景自行选择，但**更佳推荐子 Worker 进行关闭方式**，你可以控制好子 Worker 的生命周期和该释放的资源。
+在 JWorker 中提供了两种关闭 Worker 的方式，分别为 **主 Worker 进行关闭** 和 **子 Worker 进行关闭** 。**推荐使用子 Worker 进行关闭**，因为项目可以更好控制子 Worker 的生命周期和释放相应资源。
 
 **主 Worker 进行关闭**
 
-通过调用 `JWorker` 对象的 `release()` 方法进行释放。
+通过调用 `JWorker` 实例的 `release()` 方法进行释放。
 
 ```ts
 // 创建 JWorker 对象
@@ -242,9 +242,9 @@ worker.release()
 
 ### 5、值得注意
 
-如果 `JWorker` 对象还未开启（还未调用 `JWorker.start()` 方法），使用添加在该的 Channel 进行发送消息会立马得到一个 `undefined` 类型数据。
+如果 `JWorker` 对象未开启（即未调用 `JWorker.start()` 方法或已关闭），此时使用添加在该 JWorker 的 Channel 进行发送消息会立马得到一个 `undefined` 数据。
 
-通过  `JWorker` 的 Channel 发送了消息，但还未得到回复，此时对该 `JWorker` 进行关闭，则会让调用点立马得到 `undefined` 类型数据。
+如果通过 `JWorker` 的 Channel 发送了消息，在未得到回复前对该 `JWorker` 进行关闭，则会让调用点立马得到一个 `undefined` 数据。
 
 **所以为了程序的健壮，调用点的类型转换最好增加对 `undefined` 的判断。**
 
