@@ -140,31 +140,31 @@ export class MainSimpleChannel extends Channel {
 
 ### 3、传递 ArrayBuffer 数据
 
-ts 的 Worker 传递 ArrayBuffer 时，为了不拷贝提升效率，会将 ArrayBuffer 移交给另一方，JWorker 也同样提供这一能力。
+Worker 在传递 ArrayBuffer 时，为了不拷贝 ArrayBuffer 数据，可以考虑将 ArrayBuffer 使用权移交给对方，JWorker 也同样提供这一能力。
 
 ![](https://github.com/zincPower/JWorker/blob/main/img/transfer_data.png)
 
-上图则是一个完整的移交 ArrayBuffer 数据控制权的全流程
+上图则是一个完整的移交 ArrayBuffer 使用权的全流程
 
-**发起调用传递 ArrayBuffer 类型数据**
+**调用点传递 ArrayBuffer 类型数据**
 
-无论是 “主 Worker 主动调用子 Worker 方法”，还是 “子 Worker 主动调用子 Worker 方法”，都是使用 Channel 的 `send` 方法。
+无论是 “主 Worker 主动调用子 Worker 方法”，还是 “子 Worker 主动调用主 Worker 方法”，都是使用 Channel 的 `send` 方法。
 
 ```ts
 send(methodName: string, data?: any, transfer?: ArrayBuffer[]) => Promise<any>
 ```
 
-`send` 的第三个参数 `transfer` 则是持有 `data` 中包含需要移交控制权的 ArrayBuffer 对象，JWorker 会负责移交控制权。
+`send` 的第三个参数 `transfer` 持有第二个参数 `data` 中需要移交使用权的 ArrayBuffer 对象，JWorker 会负责移交使用权。
 
 ```ts
-// 发送方代码（此处为主 Worker ）
+// ============== 发送方代码（此处为主 Worker ） ==============
 const uint8Array = await getContext(this).resourceManager.getRawFileContent("image1.jpeg")
 const arrayBuffer = uint8Array.buffer
-// 此处将 ArrayBuffer 的控制权移交给子 Worker ，所以将 ArrayBuffer 也放置到了第三个参数
-// 值得注意，移交后的 ArrayBuffer ，主 Worker 不可再使用
+// 此处将 arrayBuffer 使用权移交给子 Worker ，所以将 arrayBuffer 放置到了第三个参数
+// 值得注意，移交后的 arrayBuffer ，主 Worker 不可再使用，否则会报错
 const response = await this.simpleWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
 
-// 接收方代码（此处为子 Worker ）
+// ============== 接收方代码（此处为子 Worker ） ==============
 export class SubSimpleChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     switch (methodName) {
@@ -173,8 +173,7 @@ export class SubSimpleChannel extends Channel {
         const arrayBuffer = data as ArrayBuffer
         const cropPixelMap = await this.cropImage(arrayBuffer)
         const cropArrayBuffer = await PixelMapConverter.pixelMapToArrayBuffer(cropPixelMap)
-        // 返回值如果需要移交 ArrayBuffer 控制权，则需要使用 TransferData 类进行包裹，具体使用看下一小节
-        return new TransferData(cropArrayBuffer, [cropArrayBuffer])
+        // 省略其他逻辑
       }
     }
   }
@@ -183,26 +182,26 @@ export class SubSimpleChannel extends Channel {
 
 **返回值传递 ArrayBuffer 类型数据**
 
-在处理完逻辑后，返回数据给调用方，此时存在返回数据携带 ArrayBuffer 类型数据的场景。为此 JWorker 提供了 `TransferData` 类型支持该场景数据的传递，具体操作如下：
+在处理完逻辑后，返回数据给调用方，此时存在返回数据携带 ArrayBuffer 类型数据的场景。为此 JWorker 提供了 `TransferData` 类型，支持该场景的数据传递，具体操作如下：
 
 ```ts
-// 继续上面的代码
-// 接收方代码（此处为子 Worker ）
+// ============== 继续上面的代码 ==============
+// ============== 接收方代码（此处为子 Worker ） ==============
 export class SubSimpleChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     switch (methodName) {
       case "cropImage": {
         // 省略重复代码
-        // 返回值如果需要移交 ArrayBuffer 控制权，则需要使用 TransferData 类进行包裹
-        // 第一个参数为返回数据，第二个参数则为需要移交控制权的 ArrayBuffer 列表
+        // 返回值如果需要移交 ArrayBuffer 使用权，则使用 TransferData 类进行包裹
+        // 第一个参数为返回数据，第二个参数为需要移交使用权的 ArrayBuffer 列表
         return new TransferData(cropArrayBuffer, [cropArrayBuffer])
       }
     }
   }
 }
 
-// 发送方代码（此处为主 Worker ）
-// 返回接收到的数据类型是已经去掉 TransferData 包裹的真实数据
+// ============== 发送方代码（此处为主 Worker ） ==============
+// 调用点接收到的数据类型是已经去掉 TransferData 包裹的真实数据
 const response = await this.simpleWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
 if (response) {
   this.cropPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
