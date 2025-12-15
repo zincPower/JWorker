@@ -290,6 +290,8 @@ this.worker2.start()
 
 `JWorker` 同样支持在子 Worker 中开启多个 `JWorker` ，可以进行如下图所示的创建和管理。
 
+> “子 Worker 开多个子 Worker” 示例完整代码 [传送门](https://github.com/zincPower/JWorker/tree/main/sample/src/main/ets/worker/submultiworker)
+
 ![](https://github.com/zincPower/JWorker/blob/main/img/sub_multi_worker.png)
 
 可以在子 Worker 需要创建子 Worker 的地方调用 `createJWorker` 方法创建 `JWorker` ，然后进行启动和添加相应 Channel 进行通讯。**使用方式和之前的完全相同。**
