@@ -386,7 +386,7 @@ csdn：https://blog.csdn.net/weixin_37625173
 
 公众号：微信搜索 "江澎涌" ，或扫描二维码
 
-![](https://github.com/zincPower/JWorker/blob/main/img/officialaccount.png)
+![](https://github.com/zincPower/JWorker/blob/main/img/officialaccount.jpg)
 
 ### 2、赞赏
 
