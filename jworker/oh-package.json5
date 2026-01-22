@@ -1,8 +1,8 @@
 {
   "name": "jworker",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "一套简单易用的基于鸿蒙 Worker 的双向 RPC 通讯机制",
-  "main": "Index.ets",
+  "main": "Index.ts",
   "author": "江澎涌",
   "license": "MIT",
   "dependencies": {},

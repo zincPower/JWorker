@@ -7,11 +7,11 @@
   "license": "",
   "dependencies": {
     // 项目引用
-    // "jworker": "file:../jworker"
+     "jworker": "file:../jworker"
     // 本地引用
     // "jworker": "file:../jworker/build/default/outputs/default/jworker.har",
     // 远程引用
-    "jworker": "^1.0.0"
+//    "jworker": "^1.0.0"
   }
 }
 
