@@ -5,9 +5,9 @@ import { image } from "@kit.ImageKit";
 import { effectKit } from "@kit.ArkGraphics2D";
 import { PixelMapConverter } from "../PixelMapConverter";
 
-const TAG = "SubSimpleChannel"
+const TAG = "SubHarChannel"
 
-export class SubSimpleChannel extends Channel {
+export class SubHarChannel extends Channel {
   worker: SubWorker
 
   constructor(worker: SubWorker) {

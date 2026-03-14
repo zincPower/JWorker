@@ -3,7 +3,7 @@ import { Channel } from "jworker/src/main/ets/Channel"
 import { Log } from "../log/Log"
 import { User } from "./Bean"
 import { promptAction } from "@kit.ArkUI"
-import { MainSimpleChannel } from "./channel/MainSimpleChannel"
+import { MainHarChannel } from "./channel/MainSimpleChannel"
 import { worker } from "@kit.ArkTS"
 import { PixelMapConverter } from "./PixelMapConverter"
 
@@ -12,7 +12,7 @@ const TAG = `HarWorkerComponent`
 @ComponentV2
 export struct HarWorkerComponent {
   private worker: JWorker | undefined = undefined
-  private simpleWorkerChannel: Channel | undefined = undefined
+  private harWorkerChannel: Channel | undefined = undefined
   @Local private cropPixelMap: PixelMap | undefined = undefined
   @Local private filterPixelMap: PixelMap | undefined = undefined
 
@@ -43,22 +43,22 @@ export struct HarWorkerComponent {
               return
             }
             this.worker = createJWorker(new worker.ThreadWorker("./HarWorker.ets"))
-            this.simpleWorkerChannel = new MainSimpleChannel()
-            this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
+            this.harWorkerChannel = new MainHarChannel()
+            this.worker.addChannel("HarWorkerChannel", this.harWorkerChannel)
           }).margin(2.5)
 
         Button("父 Worker 关闭")
           .onClick(async () => {
             this.worker?.release()
-            this.simpleWorkerChannel = undefined
+            this.harWorkerChannel = undefined
             this.worker = undefined
           }).margin(2.5)
 
         Button("子 Worker 关闭")
           .onClick(async () => {
-            const response = await this.simpleWorkerChannel?.send("exit") as Any
+            const response = await this.harWorkerChannel?.send("exit") as Any
             Log.i(TAG, `【子 Worker 关闭】子 Worker 回复 response=${JSON.stringify(response)}`)
-            this.simpleWorkerChannel = undefined
+            this.harWorkerChannel = undefined
             this.worker = undefined
           }).margin(2.5)
       }.backgroundColor(`#BADFDB`)
@@ -81,7 +81,7 @@ export struct HarWorkerComponent {
 
         Button("发送消息")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
@@ -95,29 +95,29 @@ export struct HarWorkerComponent {
                 "city": "Guangzhou",
               },
             } as User
-            const response = (await this.simpleWorkerChannel?.send("sayHello", user)) as Any
+            const response = (await this.harWorkerChannel?.send("sayHello", user)) as Any
             Log.i(TAG, `【发送有处理的消息】子 Worker 回复 response=${JSON.stringify(response)}`)
           }).margin(2.5)
 
         Button("无处理的消息")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const response = (await this.simpleWorkerChannel?.send("noProcessor")) as Any
+            const response = (await this.harWorkerChannel?.send("noProcessor")) as Any
             Log.i(TAG, `【发送无处理的消息】子 Worker 回复 response=${JSON.stringify(response)}`)
           }).margin(2.5)
 
         Button("裁剪图片")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
             const uint8Array = await getContext(this).resourceManager.getRawFileContent("image2.jpeg")
             const arrayBuffer = uint8Array.buffer
-            const response = await this.simpleWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
+            const response = await this.harWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
             if (response) {
               this.cropPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
             }
@@ -168,31 +168,31 @@ export struct HarWorkerComponent {
 
         Button("获取信息")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const response = (await this.simpleWorkerChannel?.send("getUserDes")) as Any
+            const response = (await this.harWorkerChannel?.send("getUserDes")) as Any
             Log.i(TAG, `【子 Worker 获取信息】子 Worker 回复 response=${JSON.stringify(response)}`)
           }).margin(2.5)
 
         Button("无处理的信息")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const response = (await this.simpleWorkerChannel?.send("subNoProcessor")) as Any
+            const response = (await this.harWorkerChannel?.send("subNoProcessor")) as Any
             Log.i(TAG, `【子 Worker 主动无处理的信息】子 Worker 回复 response=${JSON.stringify(response)}`)
           }).margin(2.5)
 
         Button("处理图片")
           .onClick(async () => {
-            if (this.simpleWorkerChannel == null) {
+            if (this.harWorkerChannel == null) {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const response = await this.simpleWorkerChannel.send("filterImage", "image2.jpeg") as ArrayBuffer | undefined
+            const response = await this.harWorkerChannel.send("filterImage", "image2.jpeg") as ArrayBuffer | undefined
             if (response) {
               this.filterPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
             }

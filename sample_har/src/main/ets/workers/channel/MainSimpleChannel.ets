@@ -2,9 +2,9 @@ import { Any, Channel, TransferData } from "jworker";
 import { Log } from "../../log/Log";
 import { User } from "../Bean";
 
-const TAG = "MainSimpleChannel"
+const TAG = "MainHarChannel"
 
-export class MainSimpleChannel extends Channel {
+export class MainHarChannel extends Channel {
   async handleMessage(methodName: string, data: Any): Promise<Any> {
     Log.i(TAG, `【handleMessage】methodName=${methodName} data=${data}`)
     switch (methodName) {

@@ -4,8 +4,13 @@
   "description": "Please describe the basic information.",
   "main": "Index.ets",
   "author": "",
-  "license": "Apache-2.0",
+  "license": "",
   "dependencies": {
-    "jworker": "file:../jworker"
+    // 项目引用
+    "jworker": "file:../jworker",
+    // 本地引用
+    // "jworker": "file:../jworker/build/default/outputs/default/jworker.har",
+    // 远程引用
+    //    "jworker": "^1.0.0"
   }
 }
