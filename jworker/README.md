@@ -18,15 +18,10 @@ JWorker 是基于鸿蒙 Worker 封装的一套 RPC 通讯机制，所以在正�
 
 ### 1、创建 JWorker
 
-**主 Worker 中**使用 `createJWorker(workerPath: string)` 创建 `JWorker` 实例，然后调用 `JWorker.start()` 启动 `JWorker` 。 完整代码如下：
-
-> `JWorker.start()` 内部会启动 Worker 文件，并关联消息接收、退出接收等回调。
+**主 Worker 中**使用 `createJWorker(worker: worker.ThreadWorker)` 创建 `JWorker` 实例，需要传入 `worker` 实例。 完整代码如下：
 
 ```ts
-// 将 Worker 的文件路径传给 createJWorker 方法，会返回 JWorker 实例
-this.worker = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
-// 启动 JWorker
-this.worker.start()
+this.worker = createJWorker(new worker.ThreadWorker("sample/ets/workers/simple/SimpleWorker.ets"))
 ```
 
 **子 Worker 中**使用 `initJWorker()` 获取 `SubWorker` 实例。完整代码如下：
@@ -222,7 +217,7 @@ if (response) {
 
 ```ts
 // 创建 JWorker 对象
-this.worker = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
+this.worker = createJWorker(new worker.ThreadWorker("sample/ets/workers/simple/SimpleWorker.ets"))
 // 进行开启 JWorker 、添加 Channel 等操作
 
 // 关闭 JWorker
@@ -246,7 +241,7 @@ worker.release()
 
 ### 5、值得注意
 
-如果 `JWorker` 对象未开启（即未调用 `JWorker.start()` 方法或已关闭），此时使用添加在该 JWorker 的 Channel 进行发送消息会立马得到一个 `undefined` 数据。
+如果 `JWorker` 对象已关闭，此时使用该 JWorker 的 Channel 进行发送消息会立马得到一个 `undefined` 数据。
 
 如果通过 `JWorker` 的 Channel 发送了消息，在未得到回复前对该 `JWorker` 进行关闭，则会让调用点立马得到一个 `undefined` 数据。
 
@@ -256,7 +251,7 @@ worker.release()
 
 ### 1、项目主 Worker 开多个子 Worker
 
-`JWorker` 项目支持开启多个 Worker ，使用 `createJWorker(workerPath: string)` 方法传入不同的路径，管理好返回 `JWorker` 对象即可。
+`JWorker` 项目支持开启多个 Worker ，使用 `createJWorker(worker: worker.ThreadWorker)` 方法传入不同的 `worker` 实例，管理好返回 `JWorker` 对象即可。
 
 > “项目主 Worker 开多个子 Worker” 示例完整代码 [传送门](https://github.com/zincPower/JWorker/tree/main/sample/src/main/ets/worker/mainmultiworker)
 
@@ -269,21 +264,18 @@ worker.release()
 
 ```ts
 // worker0 和 worker1、worker2 使用不同的 Worker ets 文件进行开启不同的 JWorker 实例
-this.worker0 = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
-this.worker0.start()
+this.worker0 = createJWorker(new worker.ThreadWorker("sample/ets/workers/simple/SimpleWorker.ets"))
 this.simpleWorkerChannel = new MainSimpleChannel()
 this.worker0.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
 
 // worker1 和 worker2 使用相同的 Worker ets 文件进行开启不同的 JWorker 实例 
-this.worker1 = createJWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets")
+this.worker1 = createJWorker(new worker.ThreadWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets"))
 this.worker1Channel = new MainMultiChannel()
 this.worker1.addChannel("multiChannel", this.worker1Channel)
-this.worker1.start()
 
-this.worker2 = createJWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets")
+this.worker2 = createJWorker(new worker.ThreadWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets"))
 this.worker2Channel = new MainMultiChannel()
 this.worker2.addChannel("multiChannel", this.worker2Channel)
-this.worker2.start()
 ```
 
 ### 2、子 Worker 开多个子 Worker
@@ -308,22 +300,19 @@ export class ParentSubChannel extends Channel {
   private startChildrenWorker() {
     // 创建三个 JWorker 并开启，添加对应 Channel 
     if (this.childWorker1 == undefined) {
-      this.childWorker1 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
+      this.childWorker1 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker1Channel = new ChildMainChannel()
       this.childWorker1.addChannel("childChannel", this.childWorker1Channel)
-      this.childWorker1.start()
     }
     if (this.childWorker2 == undefined) {
-      this.childWorker2 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
+      this.childWorker2 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker2Channel = new ChildMainChannel()
       this.childWorker2.addChannel("childChannel", this.childWorker2Channel)
-      this.childWorker2.start()
     }
     if (this.childWorker3 == undefined) {
-      this.childWorker3 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
+      this.childWorker3 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker3Channel = new ChildMainChannel()
       this.childWorker3.addChannel("childChannel", this.childWorker3Channel)
-      this.childWorker3.start()
     }
   }
 }
@@ -376,7 +365,15 @@ export class ChildSubChannel extends Channel {
 }
 ```
 
-## 四、作者简介
+## 四、Har 中使用 JWorker
+
+**JWorker 从 1.1.0 版本开始支持在 Har 中使用 JWorker 。**
+
+在 Har 中的使用和在 Hap、Hsp 的使用是完全一致的，只需要传入可以使用的 `worker` 实例即可，这里就不再赘述，可以参考 `sample_har` 的代码。
+
+传送门：https://github.com/zincPower/JWorker/blob/jworker_1.1/sample_har/src/main/ets/workers/HarWorkerComponent.ets
+
+## 五、作者简介
 
 ### 1、个人博客
 
