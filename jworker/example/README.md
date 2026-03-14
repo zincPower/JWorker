@@ -16,6 +16,8 @@ https://github.com/zincPower/JWorker
 
 **子 Worker 开多个子 Worker：** https://github.com/zincPower/JWorker/tree/main/sample/src/main/ets/worker/submultiworker
 
+**Har 中使用 JWorker:** https://github.com/zincPower/JWorker/tree/main/sample_har/src/main/ets/workers
+
 ## 💻 作者博客
 
 **掘金：** https://juejin.cn/user/1820446986338504

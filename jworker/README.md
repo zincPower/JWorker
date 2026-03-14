@@ -371,7 +371,7 @@ export class ChildSubChannel extends Channel {
 
 在 Har 中的使用和在 Hap、Hsp 的使用是完全一致的，只需要传入可以使用的 `worker` 实例即可，这里就不再赘述，可以参考 `sample_har` 的代码。
 
-传送门：https://github.com/zincPower/JWorker/blob/jworker_1.1/sample_har/src/main/ets/workers/HarWorkerComponent.ets
+> Har 中使用 JWorker 示例代码[传送门](https://github.com/zincPower/JWorker/blob/main/sample_har/src/main/ets/workers/HarWorkerComponent.ets)
 
 ## 五、作者简介
 
