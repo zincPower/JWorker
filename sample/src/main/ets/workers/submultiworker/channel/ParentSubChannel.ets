@@ -3,6 +3,7 @@ import { Task } from "../Data";
 import { ChildMainChannel } from "./ChildMainChannel";
 import { systemDateTime } from "@kit.BasicServicesKit";
 import { Log } from "../../../log/Log";
+import { worker } from "@kit.ArkTS";
 
 const TAG = "ParentSubChannel"
 
@@ -37,7 +38,7 @@ export class ParentSubChannel extends Channel {
         }
         const result = await Promise.all(promises)
         const duration = systemDateTime.getTime(false) - startTime
-        return result.filter(item => typeof item === 'string').join(' ') + `耗时：${duration/1_000} s`
+        return result.filter(item => typeof item === 'string').join(' ') + `耗时：${duration / 1_000} s`
       }
       case "exit": {
         await Promise.all([this.childWorker1Channel?.send("exit"), this.childWorker2Channel?.send("exit"), this.childWorker3Channel?.send("exit")])
@@ -60,22 +61,19 @@ export class ParentSubChannel extends Channel {
 
   private startChildrenWorker() {
     if (this.childWorker1 == undefined) {
-      this.childWorker1 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker1 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker1Channel = new ChildMainChannel()
       this.childWorker1.addChannel("childChannel", this.childWorker1Channel)
-      this.childWorker1.start()
     }
     if (this.childWorker2 == undefined) {
-      this.childWorker2 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker2 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker2Channel = new ChildMainChannel()
       this.childWorker2.addChannel("childChannel", this.childWorker2Channel)
-      this.childWorker2.start()
     }
     if (this.childWorker3 == undefined) {
-      this.childWorker3 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker3 = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ChildWorker.ets"))
       this.childWorker3Channel = new ChildMainChannel()
       this.childWorker3.addChannel("childChannel", this.childWorker3Channel)
-      this.childWorker3.start()
     }
   }
 }

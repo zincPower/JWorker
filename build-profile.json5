@@ -54,6 +54,10 @@
     {
       "name": "jworker",
       "srcPath": "./jworker",
+    },
+    {
+      "name": "sample_har",
+      "srcPath": "./sample_har",
     }
   ]
 }

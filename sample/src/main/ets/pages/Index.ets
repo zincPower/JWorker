@@ -1,6 +1,7 @@
-import { MainMultiWorkerComponent } from '../worker/mainmultiworker/MainMultiWorkerComponent'
-import { SimpleWorkerComponent } from '../worker/simple/SimpleWorkerComponent'
-import { SubMultiWorkerComponent } from '../worker/submultiworker/SubMultiWorkerComponent'
+import { MainMultiWorkerComponent } from '../workers/mainmultiworker/MainMultiWorkerComponent'
+import { SimpleWorkerComponent } from '../workers/simple/SimpleWorkerComponent'
+import { SubMultiWorkerComponent } from '../workers/submultiworker/SubMultiWorkerComponent'
+import { HarWorkerComponent } from 'sample_har'
 
 @Entry
 @Component
@@ -11,6 +12,7 @@ struct Index {
         SimpleWorkerComponent()
         MainMultiWorkerComponent()
         SubMultiWorkerComponent()
+        HarWorkerComponent()
       }
       .width('100%')
     }

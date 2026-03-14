@@ -7,19 +7,14 @@ const TAG = "JWorker"
 
 /**
  * 创建 JWorker
- * @param workerPath worker 路径
+ * @param worker worker 实例
  * @returns JWorker 的使用实例
  */
-export function createJWorker(workerPath: string): JWorker {
-  return new JWorkerImpl(workerPath)
+export function createJWorker(worker: worker.ThreadWorker): JWorker {
+  return new JWorkerImpl(worker)
 }
 
 export interface JWorker {
-  /**
-   * 启动 Worker
-   */
-  start()
-
   /**
    * 释放 Worker
    */
@@ -40,42 +35,25 @@ export interface JWorker {
 }
 
 class JWorkerImpl implements JWorker {
-  private workerPath: string
   private worker: worker.ThreadWorker | undefined
   private nextReplyId = 1
   private pendingReplies = new Map<number, Reply>()
   private channels = new Map<string, Channel>()
 
-  constructor(workerPath: string) {
-    this.workerPath = workerPath
-    Log.i(TAG, `【constructor】构造 workerPath=${workerPath}`)
-  }
-
-  start() {
-    if (this.worker != undefined) {
-      Log.e(TAG, `【start】JWorker 已经启动了 workerPath=${this.workerPath}`)
-      return
+  constructor(worker: worker.ThreadWorker) {
+    this.worker = worker
+    this.worker.onmessage = (event) => {
+      Log.i(TAG, `【onmessage】子 Worker ---消息到达---> 父 Worker event=${JSON.stringify(event)}`)
+      this.handleMessage(event.data as Envelope)
     }
-    Log.i(TAG, `【start】启动 JWorker workerPath=${this.workerPath}`)
-    try {
-      this.worker = new worker.ThreadWorker(this.workerPath)
-      this.worker.onmessage = (event) => {
-        Log.i(TAG, `【onmessage】子 Worker ---消息到达---> 父 Worker event=${JSON.stringify(event)}`)
-        this.handleMessage(event.data as Envelope)
-      }
-      this.worker.onmessageerror = (error) => {
-        Log.e(TAG, `【onmessageerror】父 Worker 错误消息 error=${error}`)
-      }
-      this.worker.onerror = (error) => {
-        Log.e(TAG, `【onerror】父 Worker 发生错误 error=${error}`)
-      }
-      this.worker.onexit = (code) => {
-        Log.i(TAG, `【onexit】父 Worker 退出 code=${code}`)
-        this.clearReply()
-        this.worker = undefined
-      }
-    } catch (e) {
-      Log.e(TAG, `【start】JWorker 创建失败 workerPath=${this.workerPath} e=${e}`)
+    this.worker.onmessageerror = (error) => {
+      Log.e(TAG, `【onmessageerror】父 Worker 错误消息 error=${error}`)
+    }
+    this.worker.onerror = (error) => {
+      Log.e(TAG, `【onerror】父 Worker 发生错误 error=${error}`)
+    }
+    this.worker.onexit = (code) => {
+      Log.i(TAG, `【onexit】父 Worker 退出 code=${code}`)
       this.clearReply()
       this.worker = undefined
     }
@@ -107,7 +85,7 @@ class JWorkerImpl implements JWorker {
     this.channels.delete(channelName)
   }
 
-  send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
+  private send(message: Message, reply: Reply, transfer?: ArrayBuffer[]) {
     if (this.worker == undefined) {
       Log.e(TAG, "【send】无法进行正常通讯")
       reply(undefined)

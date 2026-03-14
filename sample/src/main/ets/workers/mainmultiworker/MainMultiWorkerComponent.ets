@@ -2,6 +2,7 @@ import { Channel, createJWorker, JWorker } from "jworker"
 import { promptAction } from "@kit.ArkUI"
 import { MainMultiChannel } from "./channel/MainMultiChannel"
 import { Log } from "../../log/Log"
+import { worker } from "@kit.ArkTS"
 
 const TAG = `MainMultiWorkerComponent`
 
@@ -37,10 +38,9 @@ export struct MainMultiWorkerComponent {
               promptAction.showToast({ message: "Worker 已经启动" })
               return
             }
-            this.worker1 = createJWorker("sample/ets/worker/mainmultiworker/MainMultiWorker.ets")
+            this.worker1 = createJWorker(new worker.ThreadWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets"))
             this.worker1Channel = new MainMultiChannel()
             this.worker1.addChannel("multiChannel", this.worker1Channel)
-            this.worker1.start()
           }).margin(2.5)
 
         Button("关闭 JWorker1")
@@ -56,10 +56,9 @@ export struct MainMultiWorkerComponent {
               promptAction.showToast({ message: "Worker 已经启动" })
               return
             }
-            this.worker2 = createJWorker("sample/ets/worker/mainmultiworker/MainMultiWorker.ets")
+            this.worker2 = createJWorker(new worker.ThreadWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets"))
             this.worker2Channel = new MainMultiChannel()
             this.worker2.addChannel("multiChannel", this.worker2Channel)
-            this.worker2.start()
           }).margin(2.5)
 
         Button("关闭 JWorker2")

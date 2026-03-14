@@ -24,7 +24,7 @@ JWorker 是基于鸿蒙 Worker 封装的一套 RPC 通讯机制，所以在正�
 
 ```ts
 // 将 Worker 的文件路径传给 createJWorker 方法，会返回 JWorker 实例
-this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
+this.worker = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
 // 启动 JWorker
 this.worker.start()
 ```
@@ -222,7 +222,7 @@ if (response) {
 
 ```ts
 // 创建 JWorker 对象
-this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
+this.worker = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
 // 进行开启 JWorker 、添加 Channel 等操作
 
 // 关闭 JWorker
@@ -269,18 +269,18 @@ worker.release()
 
 ```ts
 // worker0 和 worker1、worker2 使用不同的 Worker ets 文件进行开启不同的 JWorker 实例
-this.worker0 = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
+this.worker0 = createJWorker("sample/ets/workers/simple/SimpleWorker.ets")
 this.worker0.start()
 this.simpleWorkerChannel = new MainSimpleChannel()
 this.worker0.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
 
 // worker1 和 worker2 使用相同的 Worker ets 文件进行开启不同的 JWorker 实例 
-this.worker1 = createJWorker("sample/ets/worker/mainmultiworker/MainMultiWorker.ets")
+this.worker1 = createJWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets")
 this.worker1Channel = new MainMultiChannel()
 this.worker1.addChannel("multiChannel", this.worker1Channel)
 this.worker1.start()
 
-this.worker2 = createJWorker("sample/ets/worker/mainmultiworker/MainMultiWorker.ets")
+this.worker2 = createJWorker("sample/ets/workers/mainmultiworker/MainMultiWorker.ets")
 this.worker2Channel = new MainMultiChannel()
 this.worker2.addChannel("multiChannel", this.worker2Channel)
 this.worker2.start()
@@ -308,19 +308,19 @@ export class ParentSubChannel extends Channel {
   private startChildrenWorker() {
     // 创建三个 JWorker 并开启，添加对应 Channel 
     if (this.childWorker1 == undefined) {
-      this.childWorker1 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker1 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
       this.childWorker1Channel = new ChildMainChannel()
       this.childWorker1.addChannel("childChannel", this.childWorker1Channel)
       this.childWorker1.start()
     }
     if (this.childWorker2 == undefined) {
-      this.childWorker2 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker2 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
       this.childWorker2Channel = new ChildMainChannel()
       this.childWorker2.addChannel("childChannel", this.childWorker2Channel)
       this.childWorker2.start()
     }
     if (this.childWorker3 == undefined) {
-      this.childWorker3 = createJWorker("sample/ets/worker/submultiworker/ChildWorker.ets")
+      this.childWorker3 = createJWorker("sample/ets/workers/submultiworker/ChildWorker.ets")
       this.childWorker3Channel = new ChildMainChannel()
       this.childWorker3.addChannel("childChannel", this.childWorker3Channel)
       this.childWorker3.start()

@@ -1,0 +1,1 @@
+export { HarWorkerComponent } from './src/main/ets/workers/HarWorkerComponent'

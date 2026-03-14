@@ -3,6 +3,7 @@ import { promptAction } from "@kit.ArkUI"
 import { Log } from "../../log/Log"
 import { ParentMainChannel } from "./channel/ParentMainChannel"
 import { Task } from "./Data"
+import { worker } from "@kit.ArkTS"
 
 const TAG = `SubMultiWorkerComponent`
 
@@ -36,10 +37,9 @@ export struct SubMultiWorkerComponent {
               promptAction.showToast({ message: "Worker 已经启动" })
               return
             }
-            this.worker = createJWorker("sample/ets/worker/submultiworker/ParentWorker.ets")
+            this.worker = createJWorker(new worker.ThreadWorker("sample/ets/workers/submultiworker/ParentWorker.ets"))
             this.workerChannel = new ParentMainChannel()
             this.worker.addChannel("parentChannel", this.workerChannel)
-            this.worker.start()
           }).margin(2.5)
 
         Button("关 闭")

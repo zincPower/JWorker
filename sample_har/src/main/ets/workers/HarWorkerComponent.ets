@@ -1,15 +1,16 @@
 import { Any, createJWorker, JWorker } from "jworker"
 import { Channel } from "jworker/src/main/ets/Channel"
-import { Log } from "../../log/Log"
+import { Log } from "../log/Log"
 import { User } from "./Bean"
 import { promptAction } from "@kit.ArkUI"
-import { PixelMapConverter } from "../../utils/PixelMapConverter"
 import { MainSimpleChannel } from "./channel/MainSimpleChannel"
+import { worker } from "@kit.ArkTS"
+import { PixelMapConverter } from "./PixelMapConverter"
 
-const TAG = `SimpleWorkerComponent`
+const TAG = `HarWorkerComponent`
 
 @ComponentV2
-export struct SimpleWorkerComponent {
+export struct HarWorkerComponent {
   private worker: JWorker | undefined = undefined
   private simpleWorkerChannel: Channel | undefined = undefined
   @Local private cropPixelMap: PixelMap | undefined = undefined
@@ -17,13 +18,14 @@ export struct SimpleWorkerComponent {
 
   build() {
     Column() {
-      Text(`常规使用`)
+      Text(`Har 使用 JWorker`)
         .width(`100%`)
         .fontColor(Color.Black)
         .fontWeight(800)
         .fontSize(22)
         .textAlign(TextAlign.Center)
         .margin(5)
+
 
       Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
         Text(`JWorker 开启、关闭`)
@@ -40,8 +42,7 @@ export struct SimpleWorkerComponent {
               promptAction.showToast({ message: `已经有 Worker 啦，不再创建` })
               return
             }
-            this.worker = createJWorker("sample/ets/worker/simple/SimpleWorker.ets")
-            this.worker.start()
+            this.worker = createJWorker(new worker.ThreadWorker("./HarWorker.ets"))
             this.simpleWorkerChannel = new MainSimpleChannel()
             this.worker.addChannel("SimpleWorkerChannel", this.simpleWorkerChannel)
           }).margin(2.5)
@@ -114,7 +115,7 @@ export struct SimpleWorkerComponent {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const uint8Array = await getContext(this).resourceManager.getRawFileContent("image1.jpeg")
+            const uint8Array = await getContext(this).resourceManager.getRawFileContent("image2.jpeg")
             const arrayBuffer = uint8Array.buffer
             const response = await this.simpleWorkerChannel.send("cropImage", arrayBuffer, [arrayBuffer]) as ArrayBuffer | undefined
             if (response) {
@@ -139,7 +140,7 @@ export struct SimpleWorkerComponent {
         .visibility(this.cropPixelMap == undefined ? Visibility.None : Visibility.Visible)
 
         Row() {
-          Image($rawfile('image1.jpeg'))
+          Image($rawfile('image2.jpeg'))
             .layoutWeight(1)
             .objectFit(ImageFit.Contain)
           Image(this.cropPixelMap)
@@ -191,7 +192,7 @@ export struct SimpleWorkerComponent {
               promptAction.showToast({ message: "Worker 还没有启动" })
               return
             }
-            const response = await this.simpleWorkerChannel.send("filterImage", "image1.jpeg") as ArrayBuffer | undefined
+            const response = await this.simpleWorkerChannel.send("filterImage", "image2.jpeg") as ArrayBuffer | undefined
             if (response) {
               this.filterPixelMap = await PixelMapConverter.arrayBufferToPixelMap(response)
             }
@@ -214,7 +215,7 @@ export struct SimpleWorkerComponent {
         .visibility(this.filterPixelMap == undefined ? Visibility.None : Visibility.Visible)
 
         Row() {
-          Image($rawfile('image1.jpeg'))
+          Image($rawfile('image2.jpeg'))
             .layoutWeight(1)
             .objectFit(ImageFit.Contain)
           Image(this.filterPixelMap)

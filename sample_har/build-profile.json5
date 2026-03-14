@@ -1,12 +1,14 @@
 {
   "apiType": "stageMode",
   "buildOption": {
+    "resOptions": {
+      "copyCodeResource": {
+        "enable": false
+      }
+    },
     "sourceOption": {
       "workers": [
-        "./src/main/ets/workers/simple/SimpleWorker.ets",
-        "./src/main/ets/workers/mainmultiworker/MainMultiWorker.ets",
-        "./src/main/ets/workers/submultiworker/ParentWorker.ets",
-        "./src/main/ets/workers/submultiworker/ChildWorker.ets"
+        './src/main/ets/workers/HarWorker.ets'
       ]
     }
   },
@@ -20,14 +22,17 @@
             "files": [
               "./obfuscation-rules.txt"
             ]
-          }
+          },
+          "consumerFiles": [
+            "./consumer-rules.txt"
+          ]
         }
-      }
+      },
     },
   ],
   "targets": [
     {
       "name": "default"
-    }
+    },
   ]
 }
